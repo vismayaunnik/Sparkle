@@ -434,13 +434,31 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         <h1 className="text-5xl md:text-6xl font-light mb-8 tracking-tight text-white/90">
           What's on <br className="md:hidden" /> your mind?
         </h1>
-        <div className="max-w-3xl mx-auto border-b border-white/10 mb-12 group focus-within:border-purple-500/50 transition-all">
+        <div className="max-w-3xl mx-auto border-b border-white/10 mb-12 group focus-within:border-purple-500/50 transition-all relative">
           <textarea 
             placeholder="I'm feeling..."
             value={mindInput}
             onChange={(e) => setMindInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && mindInput.trim()) {
+                e.preventDefault();
+                onSelectTopic(mindInput.trim());
+              }
+            }}
             className="w-full bg-transparent text-center text-3xl font-light py-4 focus:outline-none resize-none h-20 placeholder:text-white/5"
           />
+          <AnimatePresence>
+            {mindInput.trim() && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.3em] text-purple-400/80 animate-pulse flex items-center"
+              >
+                Press Enter to dive deep <ChevronRight className="w-4 h-4 ml-1" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
       
