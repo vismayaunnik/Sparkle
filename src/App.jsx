@@ -510,9 +510,26 @@ const JournalSection = ({ topic, onExit, onSave }) => {
         setIsInterrupted(true)
       }
     };
+    const handleBeforeUnload = (e) => {
+      if (isActive && timeLeft > 0) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    const handleContextMenu = (e) => {
+      if (isActive) e.preventDefault();
+    };
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [isActive, isExiting])
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('contextmenu', handleContextMenu);
+    }
+  }, [isActive, isExiting, timeLeft])
 
   useEffect(() => {
     let interval = null
@@ -602,7 +619,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
         </div>
       ) : (
         <div className="flex-1 flex flex-col w-full max-w-5xl relative animate-seq">
-          <header className={`flex justify-between items-center mb-10 bg-white/5 backdrop-blur-xl p-6 rounded-[2rem] border border-white/5 transition-opacity duration-700 ${content.length > 50 ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
+          <header className={`flex justify-between items-center mb-10 bg-white/5 backdrop-blur-xl p-6 rounded-[2rem] border border-white/5 transition-all duration-700 hover:opacity-100 ${content.length > 50 ? 'opacity-0 -translate-y-4 hover:translate-y-0' : 'opacity-100'}`}>
             <div className="flex items-center gap-6">
               <div className="px-6 py-2 glass-morphism rounded-full text-2xl font-mono flex items-center gap-4 text-purple-300">
                 <Clock className="w-6 h-6 text-purple-400" />
@@ -636,7 +653,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
             placeholder="Let the stream of consciousness flow..."
           />
 
-          <footer className={`mt-10 p-8 glass-morphism rounded-[2.5rem] relative group border border-white/5 transition-opacity duration-700 ${content.length > 100 ? 'opacity-10' : 'opacity-100'}`}>
+          <footer className={`mt-10 p-8 glass-morphism rounded-[2.5rem] relative group border border-white/5 transition-all duration-700 hover:opacity-100 ${content.length > 100 ? 'opacity-0 translate-y-4 hover:translate-y-0' : 'opacity-100'}`}>
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 text-lg italic text-purple-200/40 text-center md:text-left transition-colors group-hover:text-purple-200/60 leading-relaxed">
