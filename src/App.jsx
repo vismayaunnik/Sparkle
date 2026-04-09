@@ -393,7 +393,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
     try {
       const res = await fetch('https://dummyjson.com/quotes/random')
       const data = await res.json()
-      if (data && data.quote) fetchedPrompt = data.quote
+      if (data && data.quote && data.quote.length < 70) fetchedPrompt = data.quote
     } catch (e) {}
 
     let count = 0
@@ -438,12 +438,12 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="mb-16 w-full"
+        className="mb-8 w-full"
       >
-        <h1 className="text-5xl md:text-6xl font-light mb-4 tracking-tight text-white/90">
+        <h1 className="text-4xl md:text-5xl font-light mb-4 tracking-tight text-white/90">
           What's on <br className="md:hidden" /> your mind?
         </h1>
-        <div className="max-w-3xl mx-auto border-b border-white/10 mb-8 group focus-within:border-purple-500/50 transition-all relative">
+        <div className="max-w-xl mx-auto border-b border-white/10 mb-8 group focus-within:border-purple-500/50 transition-all relative">
           <textarea 
             placeholder="I'm feeling..."
             value={mindInput}
@@ -454,7 +454,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
                 onSelectTopic(mindInput.trim());
               }
             }}
-            className="w-full bg-transparent text-center text-3xl font-light py-4 focus:outline-none resize-none h-20 placeholder:text-white/5"
+            className="w-full bg-transparent text-center text-2xl font-light py-2 focus:outline-none resize-none h-14 placeholder:text-white/5"
           />
           <AnimatePresence>
             {mindInput.trim() && (
@@ -472,7 +472,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
       </motion.div>
       
       <div className="w-full flex flex-col items-center">
-        <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-2xl">
+        <div className="flex flex-wrap justify-center gap-2 mb-4 max-w-2xl">
           {!activeCategory ? (
             Object.keys(TOPICS).map(category => (
               <button 
@@ -510,8 +510,8 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
           className="relative group"
         >
           <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-3xl group-hover:bg-purple-500/60 transition-all" />
-          <div className="w-32 h-32 rounded-full glass-morphism flex items-center justify-center relative hover:scale-110 transition-all active:scale-95 border-2 border-white/5 group-hover:border-purple-500/50 shadow-2xl">
-            <Shuffle className={`w-10 h-10 text-purple-300 ${isRandomizing ? 'animate-spin' : ''}`} />
+          <div className="w-24 h-24 rounded-full glass-morphism flex items-center justify-center relative hover:scale-110 transition-all active:scale-95 border-2 border-white/5 group-hover:border-purple-500/50 shadow-2xl">
+            <Shuffle className={`w-8 h-8 text-purple-300 ${isRandomizing ? 'animate-spin' : ''}`} />
           </div>
           <span className="block mt-4 text-[10px] uppercase tracking-[0.4em] text-white/20 group-hover:text-white/50 transition-all">Randomizer</span>
         </button>
