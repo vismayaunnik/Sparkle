@@ -1,16 +1,46 @@
-# React + Vite
+# Sparkle - The Deep Neural Journaling Experience
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sparkle is an immersive, highly interactive, and zero-distraction web-based journaling application built for deep focus and introspection. Designed with a striking dark-mode aesthetic and a dynamic interactive neural vortex background, it provides a sanctuary for dumping your thoughts, tracking emotional states, and reflecting gracefully.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Deep Focus Lockdown Mode**: When you enter the journaling state, the surrounding UI gracefully fades to zero opacity. The system intercepts accidental tab closures and restricts context menus to prevent any and all distractions. Focus is everything.
+- **Hierarchical Prompt Generation**: Select from structured categories (e.g., Deep Thinking, Core Memories, Dreams) which dynamically expand into over 36 distinct subtopic writing prompts to jumpstart a creative spark. You can also let the visual randomizer pick the theme for you.
+- **Real Email Verification Flow**: Fully functional verification process integrated right into the onboarding UI, leveraging EmailJS to securely map user accounts and deliver real-time 6-digit access codes to an inbox for password resets and signups.
+- **Immersive Visuals**: Powered by a heavily customized WebGL "Neural Vortex" canvas that responds interactively to your interactions and sets a hyper-modern, organic visual tone.
+- **Local Profile System**: All entry sessions, history, and user streaks are locally synchronized, ensuring privacy while offering history sidebars and profile tracking stats.
 
-## React Compiler
+## 🛠️ Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Framework & Build Tools
+- **React 18** - Component-based foundation.
+- **Vite** - High-performance dev server and frontend tooling.
+- **TailwindCSS** - Rapid utility-first styling for glassmorphism and grid logic.
 
-## Expanding the ESLint configuration
+### Animation & Physics
+- **Framer Motion** - Delivering fluid transition physics, modal exits, and structural sidebars.
+- **Vanilla WebGL** - Rendering the ambient multi-chromatic neural background efficiently.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Integrations
+- **EmailJS** - The sole external API used to securely route verification code emails entirely on the client, without necessitating a heavy backend.
+
+## Live Link
+```https://sparkle-vortex.vercel.app/```
+
+## Getting Started
+
+If you have cloned this repository and wish to run the OS environment locally on your own machine:
+
+1. Install Dependencies:
+   ```bash
+   npm install
+   ```
+2. Start the Vite Server:
+   ```bash
+   npm run dev
+   ```
+   *(If on Windows and script issues occur, use `node node_modules/vite/bin/vite.js` instead).*
+3. Open `http://localhost:5173/` in your browser.
+
+
+*Ignite your inner narrative.*
