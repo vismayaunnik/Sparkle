@@ -431,7 +431,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         transition={{ delay: 0.2 }}
         className="mb-16 w-full"
       >
-        <h1 className="text-7xl md:text-9xl font-light mb-8 tracking-tighter text-white/90 leading-none">
+        <h1 className="text-5xl md:text-6xl font-light mb-8 tracking-tight text-white/90">
           What's on <br className="md:hidden" /> your mind?
         </h1>
         <div className="max-w-3xl mx-auto border-b border-white/10 mb-12 group focus-within:border-purple-500/50 transition-all">
