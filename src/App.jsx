@@ -230,13 +230,13 @@ const LoginSection = ({ onLogin }) => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.1 }}
-      className="z-10 max-w-md w-full glass-morphism rounded-[2rem] p-12 text-center"
+      className="z-10 max-w-md w-full glass-morphism rounded-[2rem] p-8 text-center max-h-[90vh] overflow-y-auto scrollbar-hide"
     >
-      <Brain className="w-16 h-16 mx-auto mb-6 text-purple-400" />
-      <h1 className="text-5xl font-light mb-2 tracking-tight">Sparkle</h1>
-      <p className="text-white/40 mb-10 font-light text-sm italic">Ignite your inner narrative.</p>
+      <Brain className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+      <h1 className="text-4xl font-light mb-2 tracking-tight">Sparkle</h1>
+      <p className="text-white/40 mb-6 font-light text-sm italic">Ignite your inner narrative.</p>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {authStep === 'input' && (
           <>
             <div className="relative">
@@ -245,7 +245,7 @@ const LoginSection = ({ onLogin }) => {
                 placeholder="Username" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
               />
             </div>
             
@@ -256,7 +256,7 @@ const LoginSection = ({ onLogin }) => {
                   placeholder="Email Address" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light mb-4 text-center"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light mb-2 text-center"
                 />
               </motion.div>
             )}
@@ -268,7 +268,7 @@ const LoginSection = ({ onLogin }) => {
                   placeholder="Password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
                 />
                 {authMode === 'register' && password && renderPasswordStrength()}
               </div>
@@ -313,7 +313,7 @@ const LoginSection = ({ onLogin }) => {
                 placeholder="New Password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
               />
               {password && renderPasswordStrength()}
             </div>
@@ -324,7 +324,7 @@ const LoginSection = ({ onLogin }) => {
         
         <button 
           type="submit"
-          className="w-full py-5 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group mt-8 shadow-xl"
+          className="w-full py-4 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group mt-6 shadow-xl"
         >
           {authStep === 'verifying' ? 'Verify Code' : authStep === 'reset' ? 'Reset Password' : authMode === 'register' ? 'Send Code' : authMode === 'forgot' ? 'Find Account' : 'Enter the Vortex'}
           <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -346,7 +346,7 @@ const LoginSection = ({ onLogin }) => {
         )}
       </AnimatePresence>
       
-      <div className="flex flex-col gap-4 mt-8">
+      <div className="flex flex-col gap-3 mt-6">
         <div className="flex justify-center gap-4">
           <button 
             type="button"
