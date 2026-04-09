@@ -2,6 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react'
 import InteractiveNeuralVortex from './components/InteractiveNeuralVortex'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock } from 'lucide-react'
+import emailjs from '@emailjs/browser'
 
 // --- Context & Utils ---
 const useLocalStorage = (key, initialValue) => {
@@ -146,6 +147,10 @@ const LoginSection = ({ onLogin }) => {
         setShowToast(true)
         setTimeout(() => setShowToast(false), 5000)
         console.log(`[SPARKLE OS] VERIFICATION CODE FOR ${email}: ${code}`)
+        emailjs.send("service_sparkle", "template_wnchqd7", {
+          to_email: email,
+          code: code
+        }, "46Fx4YBs1fJoSuazP").catch(err => console.error("EmailJS config error:", err));
       } else if (authStep === 'verifying') {
         if (verificationInput !== generatedCode) return setError("Incorrect verification code")
         
@@ -175,6 +180,10 @@ const LoginSection = ({ onLogin }) => {
         setShowToast(true)
         setTimeout(() => setShowToast(false), 5000)
         console.log(`[SPARKLE OS] RESET CODE FOR ${userEmail}: ${code}`)
+        emailjs.send("service_sparkle", "template_wnchqd7", {
+          to_email: userEmail,
+          code: code
+        }, "46Fx4YBs1fJoSuazP").catch(err => console.error("EmailJS config error:", err));
       } else if (authStep === 'verifying') {
         if (verificationInput !== generatedCode) return setError("Incorrect verification code")
         setAuthStep('reset')
