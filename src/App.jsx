@@ -428,12 +428,12 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="mb-8 w-full"
+        className="mb-4 w-full"
       >
         <h1 className="text-4xl md:text-5xl font-light mb-4 tracking-tight text-white/90">
           What's on <br className="md:hidden" /> your mind?
         </h1>
-        <div className="max-w-xl mx-auto border-b border-white/10 mb-8 group focus-within:border-purple-500/50 transition-all relative">
+        <div className="max-w-xl mx-auto border-b border-white/10 mb-4 group focus-within:border-purple-500/50 transition-all relative">
           <textarea 
             placeholder="I'm feeling..."
             value={mindInput}
@@ -444,7 +444,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
                 onSelectTopic(mindInput.trim());
               }
             }}
-            className="w-full bg-transparent text-center text-2xl font-light py-2 focus:outline-none resize-none h-14 placeholder:text-white/5"
+            className="w-full bg-transparent text-center text-xl font-light py-2 focus:outline-none resize-none h-12 placeholder:text-white/5 scrollbar-hide pt-1"
           />
           <AnimatePresence>
             {mindInput.trim() && (
@@ -497,13 +497,13 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         <button 
           onClick={handleRandomize}
           disabled={isRandomizing}
-          className="relative group"
+          className="relative group mt-2"
         >
-          <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-3xl group-hover:bg-purple-500/60 transition-all" />
-          <div className="w-24 h-24 rounded-full glass-morphism flex items-center justify-center relative hover:scale-110 transition-all active:scale-95 border-2 border-white/5 group-hover:border-purple-500/50 shadow-2xl">
-            <Shuffle className={`w-8 h-8 text-purple-300 ${isRandomizing ? 'animate-spin' : ''}`} />
+          <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl group-hover:bg-purple-500/60 transition-all" />
+          <div className="w-20 h-20 rounded-full glass-morphism flex items-center justify-center relative hover:scale-110 transition-all active:scale-95 border border-white/5 group-hover:border-purple-500/50 shadow-2xl">
+            <Shuffle className={`w-6 h-6 text-purple-300 ${isRandomizing ? 'animate-spin' : ''}`} />
           </div>
-          <span className="block mt-4 text-[10px] uppercase tracking-[0.4em] text-white/20 group-hover:text-white/50 transition-all">Randomizer</span>
+          <span className="block mt-2 text-[10px] uppercase tracking-[0.4em] text-white/20 group-hover:text-white/50 transition-all">Randomizer</span>
         </button>
       </div>
 
