@@ -128,6 +128,8 @@ const LoginSection = ({ onLogin }) => {
         if (!isPassStrong) return setError("Password does not meet safety requirements")
         if (users[username]) return setError("Username already exists")
         if (!email.includes('@')) return setError("Invalid email address")
+        const emailExists = Object.values(users).some(u => u.email === email)
+        if (emailExists) return setError("Email already registered. Please login.")
 
         const code = Math.floor(100000 + Math.random() * 900000).toString()
         setGeneratedCode(code)
@@ -339,9 +341,7 @@ const LoginSection = ({ onLogin }) => {
           >
             <Mail className="w-4 h-4 text-purple-400 flex-shrink-0" />
             <span className="text-xs font-light text-purple-200">System: {toastMessage}</span>
-            {generatedCode && authStep !== 'reset' && authMode !== 'login' && (
-              <span className="text-[10px] font-mono bg-purple-500/20 px-2 py-1 rounded ml-auto flex-shrink-0">CODE: {generatedCode}</span>
-            )}
+
           </motion.div>
         )}
       </AnimatePresence>
