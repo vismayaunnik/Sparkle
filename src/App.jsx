@@ -24,27 +24,16 @@ const useLocalStorage = (key, initialValue) => {
 }
 
 // --- Constants ---
-const TOPICS = [
-  "Core Memories",
-  "Relationships",
-  "Deep Thinking",
-  "Gratitude",
-  "Self Reflection",
-  "Dreams"
-]
+const TOPICS = {
+  "Core Memories": ["Childhood Highlights", "Turning Points", "Lost Items", "First Loves", "Forgotten Places", "A Perfect Day"],
+  "Relationships": ["Family Bonds", "Lost Friendships", "Silent Admirers", "Unspoken Words", "The Hardest Goodbye", "Unexpected Mentors"],
+  "Deep Thinking": ["The Future of Humanity", "The Nature of Reality", "Artificial Consciousness", "Life Beyond Earth", "The Concept of Time", "Ethics of Tomorrow"],
+  "Gratitude": ["The Small Things", "Unexpected Heroes", "Lessons from Failure", "Daily Miracles", "Strangers' Kindness", "Saved by Chance"],
+  "Self Reflection": ["Overcoming Fear", "My Hidden Flaws", "Moments of Pride", "Conversations with Past Self", "What Defines Me", "A Shift in Perspective"],
+  "Dreams": ["Recurring Nightmares", "The Impossible City", "Flights of Fancy", "Waking Realizations", "A Life Unlived", "Lucid Architect"]
+}
 
-const RANDOM_TOPIC_POOL = [
-  "A memory from childhood that feels like a movie",
-  "The future of humanity in 100 years",
-  "A secret you've never told anyone",
-  "Your biggest fear converted to a superpower",
-  "A world where magic is real but illegal",
-  "The last thing that made you truly happy",
-  "A dream that felt suspiciously real",
-  "If you could talk to your 80-year-old self",
-  "A day in the life of a sentient robot",
-  "The beauty in small, unnoticed things"
-]
+const RANDOM_TOPIC_POOL = Object.values(TOPICS).flat()
 
 const STORY_LINES = [
   "The light flickered, and suddenly...",
@@ -395,6 +384,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
   const [mindInput, setMindInput] = useState("")
   const [isRandomizing, setIsRandomizing] = useState(false)
   const [randomTopic, setRandomTopic] = useState("")
+  const [activeCategory, setActiveCategory] = useState(null)
 
   const handleRandomize = () => {
     setIsRandomizing(true)
@@ -456,15 +446,35 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
       
       <div className="w-full flex flex-col items-center">
         <div className="flex flex-wrap justify-center gap-3 mb-16 max-w-2xl">
-          {TOPICS.map(topic => (
-            <button 
-              key={topic}
-              onClick={() => onSelectTopic(topic)}
-              className="px-8 py-3 rounded-full border border-white/5 hover:border-purple-400/40 hover:bg-purple-400/5 transition-all text-sm font-light text-white/40 hover:text-white"
-            >
-              {topic}
-            </button>
-          ))}
+          {!activeCategory ? (
+            Object.keys(TOPICS).map(category => (
+              <button 
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className="px-8 py-3 rounded-full border border-white/5 hover:border-purple-400/40 hover:bg-purple-400/5 transition-all text-sm font-light text-white/40 hover:text-white"
+              >
+                {category}
+              </button>
+            ))
+          ) : (
+            <>
+              <button 
+                onClick={() => setActiveCategory(null)}
+                className="px-5 py-3 rounded-full border border-white/5 hover:border-purple-400/40 transition-all text-sm font-light text-purple-400/70 hover:text-purple-400 flex items-center gap-1"
+              >
+                <ChevronRight className="w-4 h-4 rotate-180" /> Back
+              </button>
+              {TOPICS[activeCategory].map(topic => (
+                <button 
+                  key={topic}
+                  onClick={() => onSelectTopic(topic)}
+                  className="px-8 py-3 rounded-full border border-purple-500/20 bg-purple-500/5 hover:border-purple-400/60 hover:bg-purple-400/10 transition-all text-sm font-light text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.1)]"
+                >
+                  {topic}
+                </button>
+              ))}
+            </>
+          )}
         </div>
 
         <button 
