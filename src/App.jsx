@@ -419,7 +419,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="z-10 w-full max-w-6xl px-12 py-32 flex flex-col items-center justify-center min-h-screen text-center"
+      className="z-10 w-full max-w-6xl px-6 h-screen overflow-hidden flex flex-col items-center justify-center text-center"
     >
       <div className="fixed top-8 right-8 flex items-center gap-4 z-50">
         <button onClick={openHistory} className="p-4 glass-morphism rounded-full hover:bg-white/10 transition-all group" title="History">
@@ -440,10 +440,10 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         transition={{ delay: 0.2 }}
         className="mb-16 w-full"
       >
-        <h1 className="text-5xl md:text-6xl font-light mb-8 tracking-tight text-white/90">
+        <h1 className="text-5xl md:text-6xl font-light mb-4 tracking-tight text-white/90">
           What's on <br className="md:hidden" /> your mind?
         </h1>
-        <div className="max-w-3xl mx-auto border-b border-white/10 mb-12 group focus-within:border-purple-500/50 transition-all relative">
+        <div className="max-w-3xl mx-auto border-b border-white/10 mb-8 group focus-within:border-purple-500/50 transition-all relative">
           <textarea 
             placeholder="I'm feeling..."
             value={mindInput}
@@ -472,7 +472,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
       </motion.div>
       
       <div className="w-full flex flex-col items-center">
-        <div className="flex flex-wrap justify-center gap-3 mb-16 max-w-2xl">
+        <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-2xl">
           {!activeCategory ? (
             Object.keys(TOPICS).map(category => (
               <button 
@@ -623,14 +623,14 @@ const JournalSection = ({ topic, onExit, onSave }) => {
       className="z-10 w-full max-w-5xl h-screen flex flex-col items-center justify-center p-8 overflow-hidden"
     >
       {!isActive ? (
-        <div className="glass-morphism rounded-[3rem] p-16 max-w-2xl w-full text-center relative overflow-hidden">
+        <div className="glass-morphism rounded-[2.5rem] p-10 max-w-2xl w-full text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-          <h2 className="text-sm uppercase tracking-[0.3em] text-white/20 mb-4">Deep Learning Path</h2>
-          <h1 className="text-5xl font-light mb-12 italic tracking-tight">"{topic}"</h1>
+          <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/30 mb-4 mt-2">Deep Learning Path</h2>
+          <h1 className="text-3xl md:text-4xl font-light mb-8 italic tracking-tight line-clamp-2 px-2">"{topic}"</h1>
           
-          <div className="mb-12">
-            <label className="block text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8">Select Duration</label>
-            <div className="flex justify-center flex-wrap gap-4 mb-6">
+          <div className="mb-8">
+            <label className="block text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4">Select Duration</label>
+            <div className="flex justify-center flex-wrap gap-4 mb-4">
               {[5, 10, 15, 30].map(t => (
                 <button 
                   key={t}
@@ -652,15 +652,14 @@ const JournalSection = ({ topic, onExit, onSave }) => {
             </div>
           </div>
 
-          <div className="space-y-4">
             <button 
               onClick={startSession}
-              className="w-full py-6 rounded-2xl font-medium outline-btn text-white flex items-center justify-center gap-3 group text-lg"
+              className="w-full py-4 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group text-md"
             >
               Start Session
               <Sparkles className="w-5 h-5 text-purple-400 group-hover:rotate-12 transition-transform" />
             </button>
-            <button onClick={onExit} className="text-white/20 hover:text-white/40 text-[10px] uppercase tracking-[0.4em] transition-all">Go Back</button>
+            <button onClick={onExit} className="text-white/30 hover:text-white/70 text-[10px] uppercase tracking-[0.4em] transition-all pt-3 block w-full text-center">Go Back</button>
           </div>
         </div>
       ) : (
