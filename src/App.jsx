@@ -25,12 +25,12 @@ const useLocalStorage = (key, initialValue) => {
 
 // --- Constants ---
 const TOPICS = {
-  "Core Memories": ["Childhood Highlights", "Turning Points", "Lost Items", "First Loves", "Forgotten Places", "A Perfect Day"],
-  "Relationships": ["Family Bonds", "Lost Friendships", "Silent Admirers", "Unspoken Words", "The Hardest Goodbye", "Unexpected Mentors"],
-  "Deep Thinking": ["The Future of Humanity", "The Nature of Reality", "Artificial Consciousness", "Life Beyond Earth", "The Concept of Time", "Ethics of Tomorrow"],
-  "Gratitude": ["The Small Things", "Unexpected Heroes", "Lessons from Failure", "Daily Miracles", "Strangers' Kindness", "Saved by Chance"],
-  "Self Reflection": ["Overcoming Fear", "My Hidden Flaws", "Moments of Pride", "Conversations with Past Self", "What Defines Me", "A Shift in Perspective"],
-  "Dreams": ["Recurring Nightmares", "The Impossible City", "Flights of Fancy", "Waking Realizations", "A Life Unlived", "Lucid Architect"]
+  "Core Memories": ["Childhood Highlights", "Turning Points", "Lost Items", "First Loves", "Forgotten Places", "A Perfect Day", "The Smell of Rain", "A Stranger's Face", "The Taste of Nostalgia", "A Faded Photograph"],
+  "Relationships": ["Family Bonds", "Lost Friendships", "Silent Admirers", "Unspoken Words", "The Hardest Goodbye", "Unexpected Mentors", "The Art of Forgiveness", "Ties That Bind", "Echoes of Laughter", "A Shared Secret"],
+  "Deep Thinking": ["The Future of Humanity", "The Nature of Reality", "Artificial Consciousness", "Life Beyond Earth", "The Concept of Time", "Ethics of Tomorrow", "The Illusion of Choice", "What is Consciousness?", "The End of the Universe", "The Architecture of Thought"],
+  "Gratitude": ["The Small Things", "Unexpected Heroes", "Lessons from Failure", "Daily Miracles", "Strangers' Kindness", "Saved by Chance", "The Warmth of the Sun", "Overcoming the Impossible", "Quiet Mornings", "The Privilege of Aging"],
+  "Self Reflection": ["Overcoming Fear", "My Hidden Flaws", "Moments of Pride", "Conversations with Past Self", "What Defines Me", "A Shift in Perspective", "The Face in the Mirror", "Forgiving Myself", "The Weight of Expectations", "Unlearning Toxicity"],
+  "Dreams": ["Recurring Nightmares", "The Impossible City", "Flights of Fancy", "Waking Realizations", "A Life Unlived", "Lucid Architect", "The Infinite Staircase", "Conversations with the Dead", "The Forgotten Song", "Wings of Glass"]
 }
 
 const RANDOM_TOPIC_POOL = Object.values(TOPICS).flat()
@@ -386,23 +386,15 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
   const [randomTopic, setRandomTopic] = useState("")
   const [activeCategory, setActiveCategory] = useState(null)
 
-  const handleRandomize = async () => {
+  const handleRandomize = () => {
     setIsRandomizing(true)
-    
-    let fetchedPrompt = ""
-    try {
-      const res = await fetch('https://dummyjson.com/quotes/random')
-      const data = await res.json()
-      if (data && data.quote && data.quote.length < 70) fetchedPrompt = data.quote
-    } catch (e) {}
-
     let count = 0
     const interval = setInterval(() => {
       setRandomTopic(RANDOM_TOPIC_POOL[Math.floor(Math.random() * RANDOM_TOPIC_POOL.length)])
       count++
       if (count > 25) {
         clearInterval(interval)
-        const finalTopic = fetchedPrompt || RANDOM_TOPIC_POOL[Math.floor(Math.random() * RANDOM_TOPIC_POOL.length)]
+        const finalTopic = RANDOM_TOPIC_POOL[Math.floor(Math.random() * RANDOM_TOPIC_POOL.length)]
         setRandomTopic(finalTopic)
         setTimeout(() => {
           setIsRandomizing(false)
