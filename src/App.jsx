@@ -66,7 +66,17 @@ const STORY_LINES = [
   "The painting's expression had changed since I last looked at it.",
   "A child's laughter echoed from the forest where no one lived.",
   "The train didn't stop at my station, it just kept gaining speed.",
-  "I woke up in a room with no doors and one small window."
+  "I woke up in a room with no doors and one small window.",
+  "The rain tasted like ashes and regrets.",
+  "A shadow detached itself from the wall and began to walk.",
+  "I whispered the password, but the machine replied with a question.",
+  "The old radio suddenly broadcasted a conversation I had yesterday.",
+  "There was an extra moon in the sky, and nobody else noticed.",
+  "The letters on the page started rearranging themselves.",
+  "A voice in my head finally said, 'You're allowed to leave now.'",
+  "The footprint in the snow matched my own, but I hadn't been there.",
+  "I dug up the time capsule, but it was filled with things from tomorrow.",
+  "The mirror shattered, and something stepped out."
 ]
 
 // --- UI Components ---
@@ -94,8 +104,8 @@ const Sidebar = ({ isOpen, onClose, title, icon: Icon, children, side = "left" }
 )
 
 const LoginSection = ({ onLogin }) => {
-  const [isRegistering, setIsRegistering] = useState(false)
-  const [regStep, setRegStep] = useState('input') // 'input', 'verifying'
+  const [authMode, setAuthMode] = useState('login') // 'login', 'register', 'forgot'
+  const [authStep, setAuthStep] = useState('input') // 'input', 'verifying', 'reset'
   const [generatedCode, setGeneratedCode] = useState("")
   const [verificationInput, setVerificationInput] = useState("")
   const [username, setUsername] = useState("")
@@ -103,6 +113,7 @@ const LoginSection = ({ onLogin }) => {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
 
   const validatePassword = (pass) => {
     const minLength = pass.length >= 8
@@ -119,26 +130,23 @@ const LoginSection = ({ onLogin }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!username || !password || (isRegistering && !email)) return setError("Please fill all fields")
-    
     const users = JSON.parse(localStorage.getItem('sparkle_v2_users') || '{}')
     
-    if (isRegistering) {
-      if (regStep === 'input') {
+    if (authMode === 'register') {
+      if (authStep === 'input') {
+        if (!username || !password || !email) return setError("Please fill all fields")
         if (!isPassStrong) return setError("Password does not meet safety requirements")
         if (users[username]) return setError("Username already exists")
-        
-        // Final sanity check for email
         if (!email.includes('@')) return setError("Invalid email address")
 
-        // Trigger Verification
         const code = Math.floor(100000 + Math.random() * 900000).toString()
         setGeneratedCode(code)
-        setRegStep('verifying')
+        setAuthStep('verifying')
+        setToastMessage(`Verification code sent to ${email}`)
         setShowToast(true)
         setTimeout(() => setShowToast(false), 5000)
         console.log(`[SPARKLE OS] VERIFICATION CODE FOR ${email}: ${code}`)
-      } else {
+      } else if (authStep === 'verifying') {
         if (verificationInput !== generatedCode) return setError("Incorrect verification code")
         
         users[username] = { 
@@ -151,18 +159,71 @@ const LoginSection = ({ onLogin }) => {
         localStorage.setItem('sparkle_v2_users', JSON.stringify(users))
         onLogin(username)
       }
+    } else if (authMode === 'forgot') {
+      if (authStep === 'input') {
+        if (!username) return setError("Please enter your username")
+        if (!users[username]) return setError("User not found")
+        
+        const userEmail = users[username].email
+        if (!userEmail) return setError("No email linked to this account")
+        
+        const code = Math.floor(100000 + Math.random() * 900000).toString()
+        setGeneratedCode(code)
+        setEmail(userEmail)
+        setAuthStep('verifying')
+        setToastMessage(`Code sent to linked email: ${userEmail.replace(/(.{2})(.*)(?=@)/, "$1***")}`)
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 5000)
+        console.log(`[SPARKLE OS] RESET CODE FOR ${userEmail}: ${code}`)
+      } else if (authStep === 'verifying') {
+        if (verificationInput !== generatedCode) return setError("Incorrect verification code")
+        setAuthStep('reset')
+        setPassword("")
+      } else if (authStep === 'reset') {
+        if (!password) return setError("Please enter a new password")
+        if (!isPassStrong) return setError("Password does not meet safety requirements")
+        
+        users[username].password = password
+        localStorage.setItem('sparkle_v2_users', JSON.stringify(users))
+        setToastMessage("Password successfully reset")
+        setShowToast(true)
+        setTimeout(() => setShowToast(false), 5000)
+        setAuthMode('login')
+        setAuthStep('input')
+        setPassword("")
+      }
     } else {
+      if (!username || !password) return setError("Please fill all fields")
       if (!users[username]) return setError("User not found")
       if (users[username].password !== password) return setError("Incorrect password")
       onLogin(username)
     }
   }
 
-  const handleToggle = () => {
-    setIsRegistering(!isRegistering); 
-    setRegStep('input');
-    setError("");
+  const switchMode = (mode) => {
+    setAuthMode(mode)
+    setAuthStep('input')
+    setError("")
+    setPassword("")
+    setVerificationInput("")
   }
+
+  const renderPasswordStrength = () => (
+    <div className="mt-4 grid grid-cols-2 gap-2 text-[10px] text-left px-2">
+      <div className={`flex items-center gap-2 ${passChecks.minLength ? 'text-green-400' : 'text-white/20'}`}>
+        <div className={`w-1 h-1 rounded-full ${passChecks.minLength ? 'bg-green-400' : 'bg-white/20'}`} /> 8+ Characters
+      </div>
+      <div className={`flex items-center gap-2 ${passChecks.hasUpper ? 'text-green-400' : 'text-white/20'}`}>
+        <div className={`w-1 h-1 rounded-full ${passChecks.hasUpper ? 'bg-green-400' : 'bg-white/20'}`} /> Uppercase Letter
+      </div>
+      <div className={`flex items-center gap-2 ${passChecks.hasNumber ? 'text-green-400' : 'text-white/20'}`}>
+        <div className={`w-1 h-1 rounded-full ${passChecks.hasNumber ? 'bg-green-400' : 'bg-white/20'}`} /> Number
+      </div>
+      <div className={`flex items-center gap-2 ${passChecks.hasSpecial ? 'text-green-400' : 'text-white/20'}`}>
+        <div className={`w-1 h-1 rounded-full ${passChecks.hasSpecial ? 'bg-green-400' : 'bg-white/20'}`} /> Special (!@#$)
+      </div>
+    </div>
+  )
 
   return (
     <motion.div 
@@ -176,7 +237,7 @@ const LoginSection = ({ onLogin }) => {
       <p className="text-white/40 mb-10 font-light text-sm italic">Ignite your inner narrative.</p>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        {regStep === 'input' ? (
+        {authStep === 'input' && (
           <>
             <div className="relative">
               <input 
@@ -188,7 +249,7 @@ const LoginSection = ({ onLogin }) => {
               />
             </div>
             
-            {isRegistering && (
+            {authMode === 'register' && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="relative">
                 <input 
                   type="email" 
@@ -200,36 +261,28 @@ const LoginSection = ({ onLogin }) => {
               </motion.div>
             )}
 
-            <div className="relative">
-              <input 
-                type="password" 
-                placeholder="Password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
-              />
-              {isRegistering && password && (
-                <div className="mt-4 grid grid-cols-2 gap-2 text-[10px] text-left px-2">
-                  <div className={`flex items-center gap-2 ${passChecks.minLength ? 'text-green-400' : 'text-white/20'}`}>
-                    <div className={`w-1 h-1 rounded-full ${passChecks.minLength ? 'bg-green-400' : 'bg-white/20'}`} /> 8+ Characters
-                  </div>
-                  <div className={`flex items-center gap-2 ${passChecks.hasUpper ? 'text-green-400' : 'text-white/20'}`}>
-                    <div className={`w-1 h-1 rounded-full ${passChecks.hasUpper ? 'bg-green-400' : 'bg-white/20'}`} /> Uppercase Letter
-                  </div>
-                  <div className={`flex items-center gap-2 ${passChecks.hasNumber ? 'text-green-400' : 'text-white/20'}`}>
-                    <div className={`w-1 h-1 rounded-full ${passChecks.hasNumber ? 'bg-green-400' : 'bg-white/20'}`} /> Number
-                  </div>
-                  <div className={`flex items-center gap-2 ${passChecks.hasSpecial ? 'text-green-400' : 'text-white/20'}`}>
-                    <div className={`w-1 h-1 rounded-full ${passChecks.hasSpecial ? 'bg-green-400' : 'bg-white/20'}`} /> Special (!@#$)
-                  </div>
-                </div>
-              )}
-            </div>
+            {authMode !== 'forgot' && (
+              <div className="relative">
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+                />
+                {authMode === 'register' && password && renderPasswordStrength()}
+              </div>
+            )}
           </>
-        ) : (
+        )}
+
+        {authStep === 'verifying' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="text-sm text-white/40 font-light">
-              A 6-digit code has been sent to <br/><span className="text-purple-300">{email}</span>
+              We sent a 6-digit code to <br/>
+              <span className="text-purple-300">
+                {authMode === 'forgot' && email ? email.replace(/(.{2})(.*)(?=@)/, "$1***") : email}
+              </span>
             </div>
             <input 
               type="text" 
@@ -241,11 +294,29 @@ const LoginSection = ({ onLogin }) => {
             />
             <button 
               type="button"
-              onClick={() => setRegStep('input')}
+              onClick={() => setAuthStep('input')}
               className="text-[10px] text-white/20 hover:text-white/50 uppercase tracking-widest underline underline-offset-4"
             >
               Back to details
             </button>
+          </motion.div>
+        )}
+
+        {authStep === 'reset' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <div className="text-sm text-white/40 font-light mb-4 text-center">
+              Enter your new secure password
+            </div>
+            <div className="relative">
+              <input 
+                type="password" 
+                placeholder="New Password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+              />
+              {password && renderPasswordStrength()}
+            </div>
           </motion.div>
         )}
 
@@ -255,7 +326,7 @@ const LoginSection = ({ onLogin }) => {
           type="submit"
           className="w-full py-5 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group mt-8 shadow-xl"
         >
-          {isRegistering ? (regStep === 'input' ? 'Send Code' : 'Verify & Enter') : 'Enter the Vortex'}
+          {authStep === 'verifying' ? 'Verify Code' : authStep === 'reset' ? 'Reset Password' : authMode === 'register' ? 'Send Code' : authMode === 'forgot' ? 'Find Account' : 'Enter the Vortex'}
           <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </button>
       </form>
@@ -266,30 +337,45 @@ const LoginSection = ({ onLogin }) => {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed top-12 left-1/2 -translate-x-1/2 px-6 py-3 glass-morphism rounded-full border border-purple-500/50 flex items-center gap-3 z-[100]"
+            className="fixed top-12 left-1/2 -translate-x-1/2 px-6 py-3 glass-morphism rounded-full border border-purple-500/50 flex items-center gap-3 z-[100] max-w-sm w-max"
           >
-            <Mail className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-light text-purple-200">System: Verification code sent to neural link.</span>
-            <span className="text-[10px] font-mono bg-purple-500/20 px-2 py-1 rounded">CODE: {generatedCode}</span>
+            <Mail className="w-4 h-4 text-purple-400 flex-shrink-0" />
+            <span className="text-xs font-light text-purple-200">System: {toastMessage}</span>
+            {generatedCode && authStep !== 'reset' && authMode !== 'login' && (
+              <span className="text-[10px] font-mono bg-purple-500/20 px-2 py-1 rounded ml-auto flex-shrink-0">CODE: {generatedCode}</span>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
       
       <div className="flex flex-col gap-4 mt-8">
-        <button 
-          onClick={handleToggle}
-          className="text-[11px] text-white/20 hover:text-white/50 transition-colors uppercase tracking-[0.2em]"
-        >
-          {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}
-        </button>
-        
-        {!isRegistering && (
+        <div className="flex justify-center gap-4">
           <button 
-            onClick={() => onLogin("Guest")}
-            className="text-[10px] text-purple-400/40 hover:text-purple-400/80 transition-all uppercase tracking-[0.3em]"
+            type="button"
+            onClick={() => switchMode(authMode === 'login' ? 'register' : 'login')}
+            className="text-[11px] text-white/20 hover:text-white/50 transition-colors uppercase tracking-[0.2em]"
           >
-            Preview as Guest
+            {authMode === 'login' ? 'Need an account? Register' : 'Already have an account? Login'}
           </button>
+        </div>
+        
+        {authMode === 'login' && (
+          <>
+            <button 
+              type="button"
+              onClick={() => switchMode('forgot')}
+              className="text-[11px] text-white/20 hover:text-white/50 transition-colors uppercase tracking-[0.2em]"
+            >
+              Forgot Password?
+            </button>
+            <button 
+              type="button"
+              onClick={() => onLogin("Guest")}
+              className="text-[10px] text-purple-400/40 hover:text-purple-400/80 transition-all uppercase tracking-[0.3em] mt-2"
+            >
+              Preview as Guest
+            </button>
+          </>
         )}
       </div>
     </motion.div>
