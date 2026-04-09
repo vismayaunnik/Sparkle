@@ -386,14 +386,23 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
   const [randomTopic, setRandomTopic] = useState("")
   const [activeCategory, setActiveCategory] = useState(null)
 
-  const handleRandomize = () => {
+  const handleRandomize = async () => {
     setIsRandomizing(true)
+    
+    let fetchedPrompt = ""
+    try {
+      const res = await fetch('https://dummyjson.com/quotes/random')
+      const data = await res.json()
+      if (data && data.quote) fetchedPrompt = data.quote
+    } catch (e) {}
+
     let count = 0
     const interval = setInterval(() => {
       setRandomTopic(RANDOM_TOPIC_POOL[Math.floor(Math.random() * RANDOM_TOPIC_POOL.length)])
       count++
       if (count > 25) {
         clearInterval(interval)
+        if (fetchedPrompt) setRandomTopic(fetchedPrompt)
         setIsRandomizing(false)
       }
     }, 80)
@@ -410,7 +419,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="z-10 w-full max-w-6xl px-12 flex flex-col items-center justify-center min-h-screen text-center"
+      className="z-10 w-full max-w-6xl px-12 py-32 flex flex-col items-center justify-center min-h-screen text-center"
     >
       <div className="fixed top-8 right-8 flex items-center gap-4 z-50">
         <button onClick={openHistory} className="p-4 glass-morphism rounded-full hover:bg-white/10 transition-all group" title="History">
