@@ -402,17 +402,15 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
       count++
       if (count > 25) {
         clearInterval(interval)
-        if (fetchedPrompt) setRandomTopic(fetchedPrompt)
-        setIsRandomizing(false)
+        const finalTopic = fetchedPrompt || RANDOM_TOPIC_POOL[Math.floor(Math.random() * RANDOM_TOPIC_POOL.length)]
+        setRandomTopic(finalTopic)
+        setTimeout(() => {
+          setIsRandomizing(false)
+          onSelectTopic(finalTopic)
+        }, 1500)
       }
     }, 80)
   }
-
-  useEffect(() => {
-    if (!isRandomizing && randomTopic) {
-      setTimeout(() => onSelectTopic(randomTopic), 1000)
-    }
-  }, [isRandomizing, randomTopic])
 
   return (
     <motion.div 
@@ -869,7 +867,7 @@ function App() {
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-x-hidden bg-[#020202] text-white selection:bg-purple-500/40 font-sans tracking-wide">
+    <div className="relative h-screen overflow-hidden w-full flex flex-col items-center justify-center bg-[#020202] text-white selection:bg-purple-500/40 font-sans tracking-wide">
       <InteractiveNeuralVortex />
       
       <AnimatePresence mode="wait">
