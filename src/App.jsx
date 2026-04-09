@@ -157,15 +157,29 @@ const LoginSection = ({ onLogin }) => {
       }
     } else if (authMode === 'forgot') {
       if (authStep === 'input') {
-        if (!username) return setError("Please enter your username")
-        if (!users[username]) return setError("User not found")
+        if (!username) return setError("Please enter your username or email")
         
-        const userEmail = users[username].email
+        const users = JSON.parse(localStorage.getItem('sparkle_v2_users') || '{}')
+        let targetUsername = null
+        let targetUser = null
+        
+        if (username.includes('@')) {
+          targetUsername = Object.keys(users).find(k => users[k].email === username)
+          if (!targetUsername) return setError("No account found with this email")
+          targetUser = users[targetUsername]
+        } else {
+          if (!users[username]) return setError("Username not found")
+          targetUsername = username
+          targetUser = users[username]
+        }
+        
+        const userEmail = targetUser.email
         if (!userEmail) return setError("No email linked to this account")
         
         const code = Math.floor(100000 + Math.random() * 900000).toString()
         setGeneratedCode(code)
         setEmail(userEmail)
+        setUsername(targetUsername)
         setAuthStep('verifying')
         setToastMessage(`Code sent to linked email: ${userEmail.replace(/(.{2})(.*)(?=@)/, "$1***")}`)
         setShowToast(true)
@@ -242,7 +256,7 @@ const LoginSection = ({ onLogin }) => {
             <div className="relative">
               <input 
                 type="text" 
-                placeholder="Username" 
+                placeholder={authMode === 'forgot' ? "Username or Email Address" : "Username"}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
@@ -305,6 +319,7 @@ const LoginSection = ({ onLogin }) => {
         {authStep === 'reset' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
             <div className="text-sm text-white/40 font-light mb-4 text-center">
+              Account found: <span className="text-purple-400">{username}</span><br/>
               Enter your new secure password
             </div>
             <div className="relative">
@@ -317,6 +332,21 @@ const LoginSection = ({ onLogin }) => {
               />
               {password && renderPasswordStrength()}
             </div>
+            <button 
+              type="button"
+              onClick={() => {
+                const updatedUsers = JSON.parse(localStorage.getItem('sparkle_v2_users') || '{}')
+                delete updatedUsers[username]
+                localStorage.setItem('sparkle_v2_users', JSON.stringify(updatedUsers))
+                setToastMessage("Account deleted. Email freed for new registration.")
+                setShowToast(true)
+                setTimeout(() => setShowToast(false), 5000)
+                switchMode('register')
+              }}
+              className="text-[10px] text-red-400/50 hover:text-red-400 mt-2 uppercase tracking-widest underline underline-offset-4 w-full text-center transition-colors"
+            >
+              Or Delete Old Account & Free Email
+            </button>
           </motion.div>
         )}
 
