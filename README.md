@@ -42,3 +42,9 @@ If you have cloned this repository and wish to run the OS environment locally on
    *(If on Windows and script issues occur, use `node node_modules/vite/bin/vite.js` instead).*
 3. Open `http://localhost:5173/` in your browser.
 
+## License
+
+This project is licensed under the MIT License.
+
+---
+**Ignite your inner narrative.**
