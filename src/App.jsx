@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import InteractiveNeuralVortex from './components/InteractiveNeuralVortex'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon, Play, Pause } from 'lucide-react'
+import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon, Play, Pause, Music, Volume2, VolumeX } from 'lucide-react'
 import { supabase } from './supabaseClient'
 
 // --- Context & Utils ---
@@ -69,7 +69,87 @@ const STORY_LINES = [
   "The mirror shattered, and something stepped out."
 ]
 
+const PEACEFUL_TRACKS = [
+  { title: "Midnight Rain", url: "https://archive.org/download/ambient-music-collection/01%20Ambient.mp3" },
+  { title: "Zen Garden", url: "https://archive.org/download/ambient-music-collection/02%20Ambient.mp3" },
+  { title: "Deep Space", url: "https://archive.org/download/ambient-music-collection/03%20Ambient.mp3" },
+  { title: "Celestial Piano", url: "https://archive.org/download/ambient-music-collection/04%20Ambient.mp3" },
+  { title: "Ethereal Breeze", url: "https://archive.org/download/ambient-music-collection/05%20Ambient.mp3" }
+]
+
 // --- UI Components ---
+
+const MusicController = ({ isPlaying, currentTrack, volume, isMuted, onToggle, onTrackChange, onVolumeChange, onToggleMute }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="fixed bottom-8 left-8 z-[100]">
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="mb-4 glass-morphism rounded-3xl p-6 w-72 shadow-2xl border border-white/10"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">Vortex Soundscape</span>
+              <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              {PEACEFUL_TRACKS.map((track, idx) => (
+                <button 
+                  key={idx}
+                  onClick={() => onTrackChange(idx)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between group ${currentTrack === idx ? 'bg-purple-500/20 text-purple-200 border border-purple-500/30' : 'text-white/40 hover:bg-white/5 border border-transparent'}`}
+                >
+                  <span className="truncate">{track.title}</span>
+                  {currentTrack === idx && isPlaying && <div className="flex gap-0.5"><div className="w-1 h-3 bg-purple-400 animate-pulse" /><div className="w-1 h-3 bg-purple-400 animate-pulse delay-75" /></div>}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <button onClick={onToggleMute} className="text-white/40 hover:text-white transition-colors">
+                  {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                </button>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="1" 
+                  step="0.01" 
+                  value={volume} 
+                  onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
+                  className="w-full accent-purple-500 bg-white/10 h-1.5 rounded-full appearance-none cursor-pointer"
+                />
+              </div>
+              <button 
+                onClick={onToggle}
+                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all flex items-center justify-center gap-2 text-sm font-light text-white"
+              >
+                {isPlaying ? <><Pause className="w-4 h-4" /> Pause Audio</> : <><Play className="w-4 h-4" /> Play Soundscape</>}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.button 
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`p-5 rounded-full glass-morphism border transition-all shadow-2xl relative ${isOpen ? 'border-purple-500/50 bg-purple-500/10' : 'border-white/10 hover:border-white/30'}`}
+      >
+        <Music className={`w-6 h-6 ${isPlaying ? 'text-purple-400 animate-pulse' : 'text-white/40'}`} />
+        {isPlaying && <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#020202]" />}
+      </motion.button>
+    </div>
+  )
+}
 
 const Sidebar = ({ isOpen, onClose, title, icon: Icon, children, side = "left" }) => (
   <motion.div 
@@ -746,6 +826,45 @@ function App() {
   const [sidebars, setSidebars] = useState({ history: false, stats: false })
   const [theme, setTheme] = useLocalStorage('sparkle_v2_theme', 'dark')
 
+  // --- Audio State ---
+  const [audioState, setAudioState] = useState({
+    isPlaying: false,
+    currentTrack: 0,
+    volume: 0.5,
+    isMuted: false
+  })
+  const audioRef = React.useRef(null)
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(PEACEFUL_TRACKS[0].url)
+      audioRef.current.loop = true
+    }
+
+    const audio = audioRef.current
+    audio.volume = audioState.isMuted ? 0 : audioState.volume
+    
+    if (audioState.isPlaying) {
+      audio.play().catch(e => console.log("Audio play blocked by browser policy"))
+    } else {
+      audio.pause()
+    }
+
+    return () => {}
+  }, [audioState.isPlaying, audioState.volume, audioState.isMuted])
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const wasPlaying = audioState.isPlaying
+      audioRef.current.pause()
+      audioRef.current.src = PEACEFUL_TRACKS[audioState.currentTrack].url
+      audioRef.current.load()
+      if (wasPlaying) {
+        audioRef.current.play().catch(() => {})
+      }
+    }
+  }, [audioState.currentTrack])
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -836,6 +955,14 @@ function App() {
     <div className="relative h-screen overflow-hidden w-full flex flex-col items-center justify-center bg-[#020202] text-white selection:bg-purple-500/40 font-sans tracking-wide">
       <InteractiveNeuralVortex />
       
+      <MusicController 
+        {...audioState}
+        onToggle={() => setAudioState(p => ({ ...p, isPlaying: !p.isPlaying }))}
+        onTrackChange={(idx) => setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))}
+        onVolumeChange={(v) => setAudioState(p => ({ ...p, volume: v, isMuted: v === 0 }))}
+        onToggleMute={() => setAudioState(p => ({ ...p, isMuted: !p.isMuted }))}
+      />
+
       <AnimatePresence mode="wait">
         {!session && !isGuest && <LoginSection key="login" onLogin={(v) => { if(v === 'Guest') setIsGuest(true) }} />}
         {(session || isGuest) && page === 'selection' && (
