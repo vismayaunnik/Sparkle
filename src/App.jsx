@@ -70,11 +70,11 @@ const STORY_LINES = [
 ]
 
 const PEACEFUL_TRACKS = [
-  { title: "Ethereal Bubble", url: "https://www.jplayer.org/audio/mp3/Miaow-07-Bubble.mp3" },
-  { title: "Serene Temere", url: "https://www.jplayer.org/audio/mp3/Miaow-01-Temere-ee.mp3" },
-  { title: "Hidden Zen", url: "https://www.jplayer.org/audio/mp3/Miaow-02-Hidden.mp3" },
-  { title: "Slow Focus", url: "https://www.jplayer.org/audio/mp3/Miaow-04-Lentement.mp3" },
-  { title: "Ephemeral Drift", url: "https://www.jplayer.org/audio/mp3/Miaow-05-Ephemere.mp3" }
+  { title: "Midnight Rain", url: "https://raw.githubusercontent.com/Anant-mishra17/Relaxing-Music-Player/master/assets/audio/rain.mp3" },
+  { title: "Neural Drift", url: "https://raw.githubusercontent.com/Anant-mishra17/Relaxing-Music-Player/master/assets/audio/ocean.mp3" },
+  { title: "Zen Garden", url: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" },
+  { title: "Slow Focus", url: "https://raw.githubusercontent.com/Anant-mishra17/Relaxing-Music-Player/master/assets/audio/forest.mp3" },
+  { title: "Lunar Echo", url: "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3" }
 ]
 
 // --- UI Components ---
@@ -950,6 +950,7 @@ function App() {
         src={PEACEFUL_TRACKS[audioState.currentTrack].url} 
         loop
         preload="auto"
+        crossOrigin="anonymous"
         onWaiting={() => setIsAudioLoading(true)}
         onCanPlay={() => setIsAudioLoading(false)}
         onError={(e) => {
@@ -964,6 +965,7 @@ function App() {
         onToggle={() => {
           if (!audioRef.current) return
           if (audioRef.current.paused) {
+            audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
             audioRef.current.play().catch(() => {})
             setAudioState(p => ({ ...p, isPlaying: true }))
           } else {
@@ -976,10 +978,11 @@ function App() {
           setIsAudioLoading(true)
           audioRef.current.pause()
           setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))
-          // Force immediate load and play
           setTimeout(() => {
             if (audioRef.current) {
+              audioRef.current.src = PEACEFUL_TRACKS[idx].url
               audioRef.current.load()
+              audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
               audioRef.current.play().catch(() => {})
             }
           }, 50)
