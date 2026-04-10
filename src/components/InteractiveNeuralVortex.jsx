@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-const InteractiveNeuralVortex = () => {
+const InteractiveNeuralVortex = ({ theme = 'dark' }) => {
   const canvasRef = useRef(null);
   const pointer = useRef({ x: 0, y: 0, tX: 0, tY: 0 });
   const animationRef = useRef(null);
@@ -67,8 +67,7 @@ const InteractiveNeuralVortex = () => {
         noise = max(.0, noise - .5);
         noise *= (1. - length(vUv - .5));
         
-        // Dark Mode Tuning: Deeper purples and blues
-        color = vec3(0.4, 0.1, 0.6); // Deep Purple
+        color = vec3(0.4, 0.1, 0.6);
         color = mix(color, vec3(0.0, 0.5, 0.8), 0.32 + 0.16 * sin(2.0 * u_scroll_progress + 1.2));
         color += vec3(0.1, 0.0, 0.4) * sin(2.0 * u_scroll_progress + 1.5);
         color = color * noise;
@@ -80,11 +79,7 @@ const InteractiveNeuralVortex = () => {
       const shader = gl.createShader(type);
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error('Shader error:', gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return null;
       return shader;
     };
 
@@ -95,10 +90,6 @@ const InteractiveNeuralVortex = () => {
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Program link error:', gl.getProgramInfoLog(program));
-      return;
-    }
     gl.useProgram(program);
 
     const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
@@ -117,9 +108,8 @@ const InteractiveNeuralVortex = () => {
     const uScrollProgress = gl.getUniformLocation(program, 'u_scroll_progress');
 
     const resizeCanvas = () => {
-      const devicePixelRatio = Math.min(window.devicePixelRatio, 2);
-      canvasEl.width = window.innerWidth * devicePixelRatio;
-      canvasEl.height = window.innerHeight * devicePixelRatio;
+      canvasEl.width = window.innerWidth * Math.min(window.devicePixelRatio, 2);
+      canvasEl.height = window.innerHeight * Math.min(window.devicePixelRatio, 2);
       gl.viewport(0, 0, canvasEl.width, canvasEl.height);
       if (uRatio) gl.uniform1f(uRatio, canvasEl.width / canvasEl.height);
     };
@@ -128,43 +118,24 @@ const InteractiveNeuralVortex = () => {
     window.addEventListener('resize', resizeCanvas);
 
     const render = () => {
-      const currentTime = performance.now();
       pointer.current.x += (pointer.current.tX - pointer.current.x) * 0.1;
       pointer.current.y += (pointer.current.tY - pointer.current.y) * 0.1;
-      
-      gl.uniform1f(uTime, currentTime);
-      gl.uniform2f(uPointerPosition, 
-        pointer.current.x / window.innerWidth, 
-        1 - pointer.current.y / window.innerHeight
-      );
+      gl.uniform1f(uTime, performance.now());
+      gl.uniform2f(uPointerPosition, pointer.current.x / window.innerWidth, 1 - pointer.current.y / window.innerHeight);
       gl.uniform1f(uScrollProgress, window.pageYOffset / (2 * window.innerHeight));
-      
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       animationRef.current = requestAnimationFrame(render);
     };
 
     render();
 
-    const handleMouseMove = (e) => {
-      pointer.current.tX = e.clientX;
-      pointer.current.tY = e.clientY;
-    };
-
+    const handleMouseMove = (e) => { pointer.current.tX = e.clientX; pointer.current.tY = e.clientY; };
     window.addEventListener('pointermove', handleMouseMove);
-    window.addEventListener('touchmove', (e) => {
-      if (e.touches[0]) {
-        pointer.current.tX = e.touches[0].clientX;
-        pointer.current.tY = e.touches[0].clientY;
-      }
-    });
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('pointermove', handleMouseMove);
       cancelAnimationFrame(animationRef.current);
-      gl.deleteProgram(program);
-      gl.deleteShader(vertexShader);
-      gl.deleteShader(fragmentShader);
     };
   }, []);
 
@@ -172,7 +143,7 @@ const InteractiveNeuralVortex = () => {
     <canvas 
       ref={canvasRef} 
       id="neuro" 
-      className="fixed inset-0 w-full h-full pointer-events-none opacity-80 z-0 bg-[#050505]"
+      className={`fixed inset-0 w-full h-full pointer-events-none z-0 transition-all duration-1000 ${theme === 'dark' ? 'bg-[#050505] opacity-80' : 'bg-[#fff] opacity-100 invert sepia hue-rotate-180'}`}
     ></canvas>
   );
 };

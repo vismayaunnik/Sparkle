@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import InteractiveNeuralVortex from './components/InteractiveNeuralVortex'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock } from 'lucide-react'
+import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon } from 'lucide-react'
 import emailjs from '@emailjs/browser'
 
 // --- Context & Utils ---
@@ -571,6 +571,8 @@ const JournalSection = ({ topic, onExit, onSave }) => {
   const [showSavedToast, setShowSavedToast] = useState(false)
   const [isInterrupted, setIsInterrupted] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState(null)
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -628,10 +630,15 @@ const JournalSection = ({ topic, onExit, onSave }) => {
   }
 
   const handleSave = () => {
-    if (!content.trim()) return
-    onSave(topic, content)
-    setShowSavedToast(true)
-    setTimeout(() => setShowSavedToast(false), 3000)
+    if (!content.trim() || isSaving) return
+    setIsSaving(true)
+    setTimeout(() => {
+      onSave(topic, content)
+      setLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+      setIsSaving(false)
+      setShowSavedToast(true)
+      setTimeout(() => setShowSavedToast(false), 3000)
+    }, 1200)
   }
 
   const getNewPrompt = () => {
@@ -695,17 +702,28 @@ const JournalSection = ({ topic, onExit, onSave }) => {
               </div>
               <h1 className="text-white/20 font-light truncate max-w-md italic text-xl">"{topic}"</h1>
             </div>
+            <div className="flex flex-col items-end mr-4">
+              <span className="text-[10px] text-white/30 uppercase tracking-widest">{content.trim().split(/\s+/).filter(w=>w).length} Words</span>
+              {lastSaved && <span className="text-[9px] text-purple-300/50 mt-1">Last saved at {lastSaved}</span>}
+            </div>
             <div className="flex items-center gap-4">
               <button 
                 onClick={handleSave}
-                className="p-4 glass-morphism hover:bg-white/10 rounded-full transition-all text-white/50 hover:text-white"
+                disabled={isSaving || !content.trim()}
+                className={`px-6 py-3 glass-morphism rounded-full transition-all flex items-center gap-2 ${isSaving ? 'animate-pulse text-purple-400' : 'text-white/50 hover:text-white hover:bg-white/10 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-transparent'}`}
                 title="Save Entry"
               >
-                <Save className="w-6 h-6" />
+                {isSaving ? (
+                  <span className="text-sm">Saving...</span>
+                ) : showSavedToast ? (
+                  <span className="text-sm">Saved ✅</span>
+                ) : (
+                  <><Save className="w-5 h-5" /> <span className="text-sm">Save</span></>
+                )}
               </button>
               <button 
                 onClick={() => setIsExiting(true)}
-                className="p-4 glass-morphism hover:bg-red-500/20 rounded-full transition-all text-white/30 hover:text-red-400"
+                className="p-4 glass-morphism hover:bg-red-500/20 hover:scale-105 active:scale-95 rounded-full transition-all text-white/30 hover:text-red-400"
                 title="Exit Session"
               >
                 <X className="w-6 h-6" />
@@ -717,7 +735,8 @@ const JournalSection = ({ topic, onExit, onSave }) => {
             autoFocus
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-3xl font-light leading-relaxed resize-none p-12 placeholder:text-white/5 scrollbar-hide text-center selection:bg-purple-500/20"
+            disabled={isSaving}
+            className="flex-1 bg-transparent border border-transparent outline-none text-3xl font-light leading-relaxed resize-none p-12 placeholder:text-white/5 scrollbar-hide text-center selection:bg-purple-500/20 focus:bg-white/[0.02] focus:shadow-[0_0_40px_rgba(168,85,247,0.05)] transition-all rounded-3xl mx-4"
             placeholder="Let the stream of consciousness flow..."
           />
 
@@ -951,7 +970,10 @@ function App() {
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
             <Flame className="w-16 h-16 text-orange-400 mx-auto mb-6 group-hover:scale-110 transition-transform" />
             <div className="text-6xl font-light mb-2">{user?.streak}</div>
-            <div className="text-[10px] uppercase tracking-[0.4em] text-white/30">Day Streak</div>
+            <div className="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8">Day Streak</div>
+            {user?.streak > 0 && (
+              <div className="text-xs text-orange-300/80 italic font-light animate-pulse">You're on a {user?.streak}-day streak — keep going!</div>
+            )}
           </div>
           
           <div className="p-8 glass-morphism rounded-[2rem] border border-white/5">
