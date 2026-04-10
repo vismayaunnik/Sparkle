@@ -95,7 +95,7 @@ const MusicController = ({ isPlaying, currentTrack, volume, isMuted, onToggle, o
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">Vortex Soundscape</span>
-                {isPlaying && <span className="text-[8px] text-purple-400/60 mt-1 uppercase tracking-widest">Active • {playbackTime}s</span>}
+                {isPlaying && <span className="text-[8px] text-purple-400/60 mt-1 uppercase tracking-widest animate-pulse">Neural Stream Active</span>}
               </div>
               <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
                 <X className="w-4 h-4" />
@@ -833,7 +833,7 @@ function App() {
   const [audioState, setAudioState] = useState({
     isPlaying: false,
     currentTrack: 0,
-    volume: 0.7,
+    volume: 0.8,
     isMuted: false
   })
   const audioRef = React.useRef(null)
@@ -844,14 +844,7 @@ function App() {
     }
   }, [audioState.volume, audioState.isMuted])
 
-  // Track playback time for visual debug
-  const [playbackTime, setPlaybackTime] = useState(0)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (audioRef.current) setPlaybackTime(Math.floor(audioRef.current.currentTime))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
+  // Removed playbackTime to maximize render stability during high-performance WebGL animations
 
   // Track change is now handled directly in the handler for better gesture persistence
 
@@ -948,24 +941,31 @@ function App() {
       <audio 
         ref={audioRef} 
         src={PEACEFUL_TRACKS[audioState.currentTrack].url} 
-        loop 
-        onPlay={() => setAudioState(p => ({ ...p, isPlaying: true }))}
-        onPause={() => setAudioState(p => ({ ...p, isPlaying: false }))}
+        loop
+        preload="auto"
       />
 
       <MusicController 
         {...audioState}
         onToggle={() => {
-          if (audioRef.current.paused) audioRef.current.play().catch(() => {})
-          else audioRef.current.pause()
+          if (!audioRef.current) return
+          if (audioRef.current.paused) {
+            audioRef.current.play().catch(() => {})
+            setAudioState(p => ({ ...p, isPlaying: true }))
+          } else {
+            audioRef.current.pause()
+            setAudioState(p => ({ ...p, isPlaying: false }))
+          }
         }}
         onTrackChange={(idx) => {
-          setAudioState(p => ({ ...p, currentTrack: idx }))
-          // The effect of changing src automatically triggers after state update if we ensure the ref is handled
-          // However, direct manipulation is safest for gesture rules:
+          if (!audioRef.current) return
+          audioRef.current.pause()
+          setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))
           setTimeout(() => {
-            audioRef.current.play().catch(() => {})
-          }, 0)
+            if (audioRef.current) {
+              audioRef.current.play().catch(() => {})
+            }
+          }, 50)
         }}
         onVolumeChange={(v) => setAudioState(p => ({ ...p, volume: v, isMuted: v === 0 }))}
         onToggleMute={() => setAudioState(p => ({ ...p, isMuted: !p.isMuted }))}
