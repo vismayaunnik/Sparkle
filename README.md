@@ -23,8 +23,12 @@ Sparkle is a premium, full-stack journaling application engineered to provide a 
 
 ## 🔥 Key Technical Features
 
-### 1. Robust Global Audio Engine
-Developed a gesture-driven soundscape engine that bypasses browser autoplay restrictions. It features a persistent state across page transitions and multi-track selection for deep focus.
+### 1. Vortex Soundscape Engine
+A custom-engineered audio solution designed to facilitate alpha-wave focus through immersive ambient layers.
+- **Gesture-Driven Architecture**: Intelligently engineered to bypass modern browser autoplay restrictions, ensuring a seamless "first-click" audio initialization.
+- **Cross-View Persistence**: Utilizes a central React context bridge to ensure audio continuity remains uninterrupted during transitions between Login, Discovery, and Deep Writing phases.
+- **High-Clarity Optimization**: Defaulted to an optimized 0.8 volume ratio with ultra-stable, high-performance CDN delivery for zero-latency playback.
+- **Real-time Engine Diagnostics**: Features a pulsing "Neural Stream" feedback system to provide visual confirmation of audio playback states on all devices.
 
 ### 2. Deep Focus Mode
 A distraction-free journaling interface featuring a custom session timer, fullscreen API integration, and AI-inspired story prompts to overcome "blank page" syndrome.
@@ -37,13 +41,11 @@ Implemented a dynamic streak-tracking algorithm that calculates consecutive days
 
 ---
 
-## 🚀 Engineering Highlights (For Recruiters)
+## Engineering Highlights 
 - **Asynchronous Data Handling**: Orchestrated complex loading states and error boundaries for real-time cloud data fetching.
 - **UX-First Security**: Implemented a "Preview as Guest" feature that isolates local state from cloud state, allowing instant user onboarding without friction.
 - **Performance Optimization**: Optimized WebGL rendering and Framer Motion orchestrations to maintain a smooth 60fps experience even on mobile devices.
 - **Responsive Architecture**: Fully responsive glass-morphism UI that adapts seamlessly to desktop, tablet, and mobile orientations.
-
----
 
 ## 🛠️ Local Development
 
