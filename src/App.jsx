@@ -79,7 +79,7 @@ const PEACEFUL_TRACKS = [
 
 // --- UI Components ---
 
-const MusicController = ({ isPlaying, currentTrack, volume, isMuted, onToggle, onTrackChange, onVolumeChange, onToggleMute }) => {
+const MusicController = ({ isPlaying, isLoading, currentTrack, volume, isMuted, onToggle, onTrackChange, onVolumeChange, onToggleMute }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -952,6 +952,10 @@ function App() {
         preload="auto"
         onWaiting={() => setIsAudioLoading(true)}
         onCanPlay={() => setIsAudioLoading(false)}
+        onError={(e) => {
+          console.error("Audio Load Error:", e);
+          setIsAudioLoading(false);
+        }}
       />
 
       <MusicController 
