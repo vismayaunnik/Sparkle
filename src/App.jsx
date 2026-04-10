@@ -69,12 +69,12 @@ const STORY_LINES = [
   "The mirror shattered, and something stepped out."
 ]
 
-const PEACEFUL_TRACKS = [
-  { title: "Quantum Pulse", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_3.mp3" },
-  { title: "Neural Drift", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_1.mp3" },
-  { title: "Static Calm", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_2.mp3" },
-  { title: "Lunar Echo", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_4.mp3" },
-  { title: "Vortex Stream", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_5.mp3" }
+const NEURAL_PATCHES = [
+  { title: "Deep Vortex", type: "brownian" },
+  { title: "Aether Drift", type: "sine" },
+  { title: "Solar Rain", type: "white" },
+  { title: "Lunar Echo", type: "fm" },
+  { title: "Stellar Pulse", type: "triangle" }
 ]
 
 // --- UI Components ---
@@ -107,14 +107,14 @@ const MusicController = ({ isPlaying, isLoading, currentTrack, volume, isMuted, 
             </div>
 
             <div className="space-y-2 mb-6">
-              {PEACEFUL_TRACKS.map((track, idx) => (
+              {NEURAL_PATCHES.map((patch, idx) => (
                 <button 
                   key={idx}
                   onClick={() => onTrackChange(idx)}
-                  className={`w-full text-left px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-between group ${currentTrack === idx ? 'bg-purple-500/20 text-purple-200 border border-purple-500/30' : 'text-white/40 hover:bg-white/5 border border-transparent'}`}
+                  className={`w-full text-left p-2 rounded-lg transition-all text-xs flex items-center gap-3 ${currentTrack === idx ? 'bg-purple-500/20 text-purple-300' : 'text-white/40 hover:bg-white/5'}`}
                 >
-                  <span className="truncate">{track.title}</span>
-                  {currentTrack === idx && isPlaying && <div className="flex gap-0.5"><div className="w-1 h-3 bg-purple-400 animate-pulse" /><div className="w-1 h-3 bg-purple-400 animate-pulse delay-75" /></div>}
+                  <div className={`w-1.5 h-1.5 rounded-full ${currentTrack === idx ? 'bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.6)]' : 'bg-white/10'}`} />
+                  {patch.title}
                 </button>
               ))}
             </div>
@@ -840,20 +840,104 @@ function App() {
     volume: 0.8,
     isMuted: false
   })
-  const audioRef = React.useRef(null)
+
+  // --- Neural Audio Synthesis Engine ---
+  const audioCtx = useRef(null)
+  const masterGain = useRef(null)
+  const currentNodes = useRef([])
+
+  const initAudio = () => {
+    if (!audioCtx.current) {
+      audioCtx.current = new (window.AudioContext || window.webkitAudioContext)()
+      masterGain.current = audioCtx.current.createGain()
+      masterGain.current.connect(audioCtx.current.destination)
+      masterGain.current.gain.value = audioState.isMuted ? 0 : audioState.volume
+    }
+    if (audioCtx.current.state === 'suspended') {
+      audioCtx.current.resume()
+    }
+  }
+
+  const stopCurrentPatch = () => {
+    currentNodes.current.forEach(node => {
+      try { node.stop() } catch(e) {}
+      try { node.disconnect() } catch(e) {}
+    })
+    currentNodes.current = []
+  }
+
+  const playPatch = (idx) => {
+    initAudio()
+    stopCurrentPatch()
+    
+    const patch = NEURAL_PATCHES[idx]
+    const ctx = audioCtx.current
+    
+    if (patch.type === 'brownian' || patch.type === 'white') {
+      const bufferSize = 2 * ctx.sampleRate
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const data = buffer.getChannelData(0)
+      let lastOut = 0.0
+      
+      for (let i = 0; i < bufferSize; i++) {
+        if (patch.type === 'brownian') {
+          const white = Math.random() * 2 - 1
+          data[i] = (lastOut + (0.02 * white)) / 1.02
+          lastOut = data[i]
+          data[i] *= 3.5
+        } else {
+          data[i] = Math.random() * 2 - 1
+        }
+      }
+      
+      const source = ctx.createBufferSource()
+      source.buffer = buffer
+      source.loop = true
+      
+      const filter = ctx.createBiquadFilter()
+      filter.type = patch.type === 'brownian' ? 'lowpass' : 'bandpass'
+      filter.frequency.value = patch.type === 'brownian' ? 400 : 1000
+      filter.Q.value = 1
+      
+      source.connect(filter)
+      filter.connect(masterGain.current)
+      source.start()
+      currentNodes.current = [source, filter]
+    } else {
+      const osc = ctx.createOscillator()
+      const lfo = ctx.createOscillator()
+      const lfoGain = ctx.createGain()
+      
+      osc.type = patch.type === 'sine' ? 'sine' : patch.type === 'triangle' ? 'triangle' : 'sine'
+      osc.frequency.setValueAtTime(patch.type === 'triangle' ? 110 : 220, ctx.currentTime)
+      
+      lfo.type = 'sine'
+      lfo.frequency.setValueAtTime(0.5, ctx.currentTime)
+      lfoGain.gain.setValueAtTime(10, ctx.currentTime)
+      
+      lfo.connect(lfoGain)
+      lfoGain.connect(osc.frequency)
+      osc.connect(masterGain.current)
+      
+      osc.start()
+      lfo.start()
+      currentNodes.current = [osc, lfo, lfoGain]
+    }
+  }
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
+    if (masterGain.current) {
+      masterGain.current.gain.setTargetAtTime(audioState.isMuted ? 0 : audioState.volume, audioCtx.current.currentTime, 0.1)
     }
   }, [audioState.volume, audioState.isMuted])
 
-  // Removed playbackTime to maximize render stability during high-performance WebGL animations
-
-  // Track playback state & loading for visual feedback
-  const [isAudioLoading, setIsAudioLoading] = useState(false)
-  
-  // Track change is now handled directly in the handler for better gesture persistence
+  useEffect(() => {
+    if (audioState.isPlaying) {
+      playPatch(audioState.currentTrack)
+    } else {
+      stopCurrentPatch()
+    }
+  }, [audioState.isPlaying, audioState.currentTrack])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -945,51 +1029,21 @@ function App() {
     <div className="relative h-screen overflow-hidden w-full flex flex-col items-center justify-center bg-[#020202] text-white selection:bg-purple-500/40 font-sans tracking-wide">
       <InteractiveNeuralVortex />
       
-      <audio 
-        ref={audioRef} 
-        src={PEACEFUL_TRACKS[audioState.currentTrack].url} 
-        loop
-        preload="auto"
-        crossOrigin="anonymous"
-        onWaiting={() => setIsAudioLoading(true)}
-        onCanPlay={() => setIsAudioLoading(false)}
-        onError={(e) => {
-          console.error("Audio Load Error:", e);
-          setIsAudioLoading(false);
-        }}
-      />
-
       <MusicController 
         {...audioState}
-        isLoading={isAudioLoading}
+        isLoading={false}
         onToggle={() => {
-          if (!audioRef.current) return
-          if (audioRef.current.paused) {
-            audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
-            audioRef.current.play().catch(() => {})
-            setAudioState(p => ({ ...p, isPlaying: true }))
-          } else {
-            audioRef.current.pause()
-            setAudioState(p => ({ ...p, isPlaying: false }))
-          }
+          initAudio()
+          setAudioState(p => ({ ...p, isPlaying: !p.isPlaying }))
         }}
         onTrackChange={(idx) => {
-          if (!audioRef.current) return
-          setIsAudioLoading(true)
-          audioRef.current.pause()
+          initAudio()
           setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))
-          setTimeout(() => {
-            if (audioRef.current) {
-              audioRef.current.src = PEACEFUL_TRACKS[idx].url
-              audioRef.current.load()
-              audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
-              audioRef.current.play().catch(() => {})
-            }
-          }, 50)
         }}
         onVolumeChange={(v) => setAudioState(p => ({ ...p, volume: v, isMuted: v === 0 }))}
         onToggleMute={() => setAudioState(p => ({ ...p, isMuted: !p.isMuted }))}
       />
+
 
       <AnimatePresence mode="wait">
         {!session && !isGuest && <LoginSection key="login" onLogin={(v) => { if(v === 'Guest') setIsGuest(true) }} />}
