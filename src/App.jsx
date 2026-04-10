@@ -474,7 +474,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
                 onSelectTopic(mindInput.trim());
               }
             }}
-            className="w-full bg-transparent text-center text-xl font-light py-2 focus:outline-none resize-none h-12 placeholder:text-white/5 scrollbar-hide pt-1"
+            className="w-full bg-transparent text-center text-xl font-light py-2 focus:outline-none resize-none h-12 placeholder:text-white/20 scrollbar-hide pt-1"
           />
           <AnimatePresence>
             {mindInput.trim() && (
@@ -524,17 +524,19 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
           )}
         </div>
 
-        <button 
-          onClick={handleRandomize}
-          disabled={isRandomizing}
-          className="relative group mt-2"
-        >
-          <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl group-hover:bg-purple-500/60 transition-all" />
-          <div className="w-20 h-20 rounded-full glass-morphism flex items-center justify-center relative hover:scale-110 transition-all active:scale-95 border border-white/5 group-hover:border-purple-500/50 shadow-2xl">
-            <Shuffle className={`w-6 h-6 text-purple-300 ${isRandomizing ? 'animate-spin' : ''}`} />
-          </div>
-          <span className="block mt-2 text-[10px] uppercase tracking-[0.4em] text-white/20 group-hover:text-white/50 transition-all">Randomizer</span>
-        </button>
+        {!activeCategory && (
+          <button 
+            onClick={handleRandomize}
+            disabled={isRandomizing}
+            className="relative group mt-2"
+          >
+            <div className="absolute inset-0 bg-purple-500/30 rounded-full blur-xl group-hover:bg-purple-500/60 transition-all" />
+            <div className="w-20 h-20 rounded-full glass-morphism flex items-center justify-center relative hover:scale-110 transition-all active:scale-95 border border-white/5 group-hover:border-purple-500/50 shadow-2xl">
+              <Shuffle className={`w-6 h-6 text-purple-300 ${isRandomizing ? 'animate-spin' : ''}`} />
+            </div>
+            <span className="block mt-2 text-[10px] uppercase tracking-[0.4em] text-white/20 group-hover:text-white/50 transition-all">Randomizer</span>
+          </button>
+        )}
       </div>
 
       <AnimatePresence>
