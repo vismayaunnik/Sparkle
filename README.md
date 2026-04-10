@@ -1,50 +1,62 @@
-# Sparkle - The Deep Neural Journaling Experience
+# Sparkle | Immersive Deep-Focus Journaling 🌌
 
-Sparkle is an immersive, highly interactive, and zero-distraction web-based journaling application built for deep focus and introspection. Designed with a striking dark-mode aesthetic and a dynamic interactive neural vortex background, it provides a sanctuary for dumping your thoughts, tracking emotional states, and reflecting gracefully.
+**Live Demo:** [sparkle-vortex.vercel.app](https://sparkle-vortex.vercel.app)
 
-## Features
+Sparkle is a premium, full-stack journaling application engineered to provide a distraction-free environment for reflection and deep work. Designed with a "vortex" aesthetic, it combines immersive WebGL visuals with a robust cloud backend to create a seamless, professional-grade user experience.
 
-- **Deep Focus Lockdown Mode**: When you enter the journaling state, the surrounding UI gracefully fades to zero opacity. The system intercepts accidental tab closures and restricts context menus to prevent any and all distractions. Focus is everything.
-- **Hierarchical Prompt Generation**: Select from structured categories (e.g., Deep Thinking, Core Memories, Dreams) which dynamically expand into over 36 distinct subtopic writing prompts to jumpstart a creative spark. You can also let the visual randomizer pick the theme for you.
-- **Real Email Verification Flow**: Fully functional verification process integrated right into the onboarding UI, leveraging EmailJS to securely map user accounts and deliver real-time 6-digit access codes to an inbox for password resets and signups.
-- **Immersive Visuals**: Powered by a heavily customized WebGL "Neural Vortex" canvas that responds interactively to your interactions and sets a hyper-modern, organic visual tone.
-- **Local Profile System**: All entry sessions, history, and user streaks are locally synchronized, ensuring privacy while offering history sidebars and profile tracking stats.
+---
 
 ## 🛠️ Tech Stack
 
-### Framework & Build Tools
-- **React 18** - Component-based foundation.
-- **Vite** - High-performance dev server and frontend tooling.
-- **TailwindCSS** - Rapid utility-first styling for glassmorphism and grid logic.
+### Frontend Architecture
+- **React 19 & Vite**: High-performance rendering and lightning-fast development cycle.
+- **Tailwind CSS v4**: Utilizing the latest in utility-first CSS for a bespoke, premium UI.
+- **Framer Motion & GSAP**: Advanced physics-based animations and layout transitions.
+- **WebGL**: Custom-coded Neural Vortex background for an immersive "deep space" focus.
 
-### Animation & Physics
-- **Framer Motion** - Delivering fluid transition physics, modal exits, and structural sidebars.
-- **Vanilla WebGL** - Rendering the ambient multi-chromatic neural background efficiently.
-
-### Integrations
-- **EmailJS** - The sole external API used to securely route verification code emails entirely on the client, without necessitating a heavy backend.
-
-## Live Link
-```https://sparkle-vortex.vercel.app/```
-
-## Getting Started
-
-If you have cloned this repository and wish to run the OS environment locally on your own machine:
-
-1. Install Dependencies:
-   ```bash
-   npm install
-   ```
-2. Start the Vite Server:
-   ```bash
-   npm run dev
-   ```
-   *(If on Windows and script issues occur, use `node node_modules/vite/bin/vite.js` instead).*
-3. Open `http://localhost:5173/` in your browser.
-
-## License
-
-This project is licensed under the MIT License.
+### Backend & Security
+- **Supabase (PostgreSQL)**: Managed relational database with real-time data sync.
+- **Supabase Auth**: Secure JWT-based authentication with protected route management.
+- **Row-Level Security (RLS)**: Fine-grained database policies ensuring absolute user data privacy.
 
 ---
-**Ignite your inner narrative.**
+
+## 🔥 Key Technical Features
+
+### 1. Robust Global Audio Engine
+Developed a gesture-driven soundscape engine that bypasses browser autoplay restrictions. It features a persistent state across page transitions and multi-track selection for deep focus.
+
+### 2. Deep Focus Mode
+A distraction-free journaling interface featuring a custom session timer, fullscreen API integration, and AI-inspired story prompts to overcome "blank page" syndrome.
+
+### 3. Persistent Neural History
+Full CRUD integration with PostgreSQL. Every entry is securely saved to the cloud, allowing users to sync their journaling history across any device.
+
+### 4. Behavioral Gamification
+Implemented a dynamic streak-tracking algorithm that calculates consecutive days of activity, encouraging a consistent writing habit.
+
+---
+
+## 🚀 Engineering Highlights (For Recruiters)
+- **Asynchronous Data Handling**: Orchestrated complex loading states and error boundaries for real-time cloud data fetching.
+- **UX-First Security**: Implemented a "Preview as Guest" feature that isolates local state from cloud state, allowing instant user onboarding without friction.
+- **Performance Optimization**: Optimized WebGL rendering and Framer Motion orchestrations to maintain a smooth 60fps experience even on mobile devices.
+- **Responsive Architecture**: Fully responsive glass-morphism UI that adapts seamlessly to desktop, tablet, and mobile orientations.
+
+---
+
+## 🛠️ Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/vismayaunnik/Sparkle.git
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+---
+*Developed as a showcase of Full-Stack React Engineering and High-Performance UI Design.*

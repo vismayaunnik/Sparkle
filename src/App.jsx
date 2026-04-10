@@ -93,7 +93,10 @@ const MusicController = ({ isPlaying, currentTrack, volume, isMuted, onToggle, o
             className="mb-4 glass-morphism rounded-3xl p-6 w-72 shadow-2xl border border-white/10"
           >
             <div className="flex items-center justify-between mb-6">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">Vortex Soundscape</span>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">Vortex Soundscape</span>
+                {isPlaying && <span className="text-[8px] text-purple-400/60 mt-1 uppercase tracking-widest">Active • {playbackTime}s</span>}
+              </div>
               <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
                 <X className="w-4 h-4" />
               </button>
@@ -836,17 +839,19 @@ function App() {
   const audioRef = React.useRef(null)
 
   useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(PEACEFUL_TRACKS[0].url)
-      audioRef.current.loop = true
-    }
-  }, [])
-
-  useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
     }
   }, [audioState.volume, audioState.isMuted])
+
+  // Track playback time for visual debug
+  const [playbackTime, setPlaybackTime] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (audioRef.current) setPlaybackTime(Math.floor(audioRef.current.currentTime))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Track change is now handled directly in the handler for better gesture persistence
 
@@ -940,20 +945,27 @@ function App() {
     <div className="relative h-screen overflow-hidden w-full flex flex-col items-center justify-center bg-[#020202] text-white selection:bg-purple-500/40 font-sans tracking-wide">
       <InteractiveNeuralVortex />
       
+      <audio 
+        ref={audioRef} 
+        src={PEACEFUL_TRACKS[audioState.currentTrack].url} 
+        loop 
+        onPlay={() => setAudioState(p => ({ ...p, isPlaying: true }))}
+        onPause={() => setAudioState(p => ({ ...p, isPlaying: false }))}
+      />
+
       <MusicController 
         {...audioState}
         onToggle={() => {
-          const nextPlaying = !audioState.isPlaying
-          if (nextPlaying) audioRef.current.play().catch(() => {})
+          if (audioRef.current.paused) audioRef.current.play().catch(() => {})
           else audioRef.current.pause()
-          setAudioState(p => ({ ...p, isPlaying: nextPlaying }))
         }}
         onTrackChange={(idx) => {
-          audioRef.current.pause()
-          audioRef.current.src = PEACEFUL_TRACKS[idx].url
-          audioRef.current.load()
-          audioRef.current.play().catch(() => {})
-          setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))
+          setAudioState(p => ({ ...p, currentTrack: idx }))
+          // The effect of changing src automatically triggers after state update if we ensure the ref is handled
+          // However, direct manipulation is safest for gesture rules:
+          setTimeout(() => {
+            audioRef.current.play().catch(() => {})
+          }, 0)
         }}
         onVolumeChange={(v) => setAudioState(p => ({ ...p, volume: v, isMuted: v === 0 }))}
         onToggleMute={() => setAudioState(p => ({ ...p, isMuted: !p.isMuted }))}
