@@ -70,11 +70,11 @@ const STORY_LINES = [
 ]
 
 const PEACEFUL_TRACKS = [
-  { title: "Quantum Pulse", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
-  { title: "Neural Drift", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
-  { title: "Static Calm", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
-  { title: "Lunar Echo", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
-  { title: "Vortex Stream", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" }
+  { title: "Ethereal Bubble", url: "https://www.jplayer.org/audio/mp3/Miaow-07-Bubble.mp3" },
+  { title: "Serene Temere", url: "https://www.jplayer.org/audio/mp3/Miaow-01-Temere-ee.mp3" },
+  { title: "Hidden Zen", url: "https://www.jplayer.org/audio/mp3/Miaow-02-Hidden.mp3" },
+  { title: "Slow Focus", url: "https://www.jplayer.org/audio/mp3/Miaow-04-Lentement.mp3" },
+  { title: "Ephemeral Drift", url: "https://www.jplayer.org/audio/mp3/Miaow-05-Ephemere.mp3" }
 ]
 
 // --- UI Components ---
@@ -95,7 +95,11 @@ const MusicController = ({ isPlaying, currentTrack, volume, isMuted, onToggle, o
             <div className="flex items-center justify-between mb-6">
               <div className="flex flex-col">
                 <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">Vortex Soundscape</span>
-                {isPlaying && <span className="text-[8px] text-purple-400/60 mt-1 uppercase tracking-widest animate-pulse">Neural Stream Active</span>}
+                {isPlaying && (
+                  <span className={`text-[8px] mt-1 uppercase tracking-widest ${isLoading ? 'text-amber-400 animate-pulse' : 'text-purple-400 animate-pulse'}`}>
+                    {isLoading ? 'Synchronizing Stream...' : 'Neural Stream Active'}
+                  </span>
+                )}
               </div>
               <button onClick={() => setIsOpen(false)} className="p-1 hover:bg-white/10 rounded-full text-white/40 hover:text-white transition-all">
                 <X className="w-4 h-4" />
@@ -846,6 +850,9 @@ function App() {
 
   // Removed playbackTime to maximize render stability during high-performance WebGL animations
 
+  // Track playback state & loading for visual feedback
+  const [isAudioLoading, setIsAudioLoading] = useState(false)
+  
   // Track change is now handled directly in the handler for better gesture persistence
 
   useEffect(() => {
@@ -943,10 +950,13 @@ function App() {
         src={PEACEFUL_TRACKS[audioState.currentTrack].url} 
         loop
         preload="auto"
+        onWaiting={() => setIsAudioLoading(true)}
+        onCanPlay={() => setIsAudioLoading(false)}
       />
 
       <MusicController 
         {...audioState}
+        isLoading={isAudioLoading}
         onToggle={() => {
           if (!audioRef.current) return
           if (audioRef.current.paused) {
@@ -959,10 +969,13 @@ function App() {
         }}
         onTrackChange={(idx) => {
           if (!audioRef.current) return
+          setIsAudioLoading(true)
           audioRef.current.pause()
           setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))
+          // Force immediate load and play
           setTimeout(() => {
             if (audioRef.current) {
+              audioRef.current.load()
               audioRef.current.play().catch(() => {})
             }
           }, 50)
