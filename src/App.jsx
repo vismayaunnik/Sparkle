@@ -70,11 +70,11 @@ const STORY_LINES = [
 ]
 
 const PEACEFUL_TRACKS = [
-  { title: "Midnight Rain", url: "https://archive.org/download/ambient-music-collection/01%20Ambient.mp3" },
-  { title: "Zen Garden", url: "https://archive.org/download/ambient-music-collection/02%20Ambient.mp3" },
-  { title: "Deep Space", url: "https://archive.org/download/ambient-music-collection/03%20Ambient.mp3" },
-  { title: "Celestial Piano", url: "https://archive.org/download/ambient-music-collection/04%20Ambient.mp3" },
-  { title: "Ethereal Breeze", url: "https://archive.org/download/ambient-music-collection/05%20Ambient.mp3" }
+  { title: "Quantum Pulse", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+  { title: "Neural Drift", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+  { title: "Static Calm", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+  { title: "Lunar Echo", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+  { title: "Vortex Stream", url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" }
 ]
 
 // --- UI Components ---
@@ -830,7 +830,7 @@ function App() {
   const [audioState, setAudioState] = useState({
     isPlaying: false,
     currentTrack: 0,
-    volume: 0.5,
+    volume: 0.7,
     isMuted: false
   })
   const audioRef = React.useRef(null)
