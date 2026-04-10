@@ -1,7 +1,7 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import InteractiveNeuralVortex from './components/InteractiveNeuralVortex'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon } from 'lucide-react'
+import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon, Play, Pause } from 'lucide-react'
 import { supabase } from './supabaseClient'
 
 // --- Context & Utils ---
@@ -456,6 +456,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
   const [content, setContent] = useState("")
   const [showSavedToast, setShowSavedToast] = useState(false)
   const [isInterrupted, setIsInterrupted] = useState(false)
+  const [isPaused, setIsPaused] = useState(false)
   const [isExiting, setIsExiting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [lastSaved, setLastSaved] = useState(null)
@@ -489,7 +490,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
 
   useEffect(() => {
     let interval = null
-    if (isActive && timeLeft > 0) {
+    if (isActive && !isPaused && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(t => t - 1)
       }, 1000)
@@ -499,7 +500,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
       handleSave()
     }
     return () => clearInterval(interval)
-  }, [isActive, timeLeft])
+  }, [isActive, timeLeft, isPaused])
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
@@ -582,9 +583,16 @@ const JournalSection = ({ topic, onExit, onSave }) => {
         <div className="flex-1 flex flex-col w-full max-w-5xl relative animate-seq">
           <header className={`flex justify-between items-center mb-10 bg-white/5 backdrop-blur-xl p-6 rounded-[2rem] border border-white/5 transition-all duration-700 hover:opacity-100 ${content.length > 50 ? 'opacity-0 -translate-y-4 hover:translate-y-0' : 'opacity-100'}`}>
             <div className="flex items-center gap-6">
-              <div className="px-6 py-2 glass-morphism rounded-full text-2xl font-mono flex items-center gap-4 text-purple-300">
-                <Clock className="w-6 h-6 text-purple-400" />
-                {formatTime(timeLeft)}
+              <div className="pl-6 pr-2 py-2 glass-morphism rounded-full text-2xl font-mono flex items-center gap-4 text-purple-300">
+                <Clock className={`w-6 h-6 text-purple-400 ${isPaused ? 'opacity-50' : ''}`} />
+                <span className={isPaused ? "text-purple-300/50" : ""}>{formatTime(timeLeft)}</span>
+                <button 
+                  onClick={() => setIsPaused(!isPaused)} 
+                  className={`p-2 rounded-full transition-all border ${isPaused ? 'bg-purple-500/20 border-purple-400 hover:bg-purple-500/30 text-white' : 'hover:bg-white/10 border-transparent hover:border-white/20 text-white/50 hover:text-white'}`}
+                  title={isPaused ? "Resume Session" : "Pause Session"}
+                >
+                  {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                </button>
               </div>
               <h1 className="text-white/20 font-light truncate max-w-md italic text-xl">"{topic}"</h1>
             </div>
