@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react'
 import InteractiveNeuralVortex from './components/InteractiveNeuralVortex'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon } from 'lucide-react'
-import emailjs from '@emailjs/browser'
+import { supabase } from './supabaseClient'
 
 // --- Context & Utils ---
 const useLocalStorage = (key, initialValue) => {
@@ -94,16 +94,14 @@ const Sidebar = ({ isOpen, onClose, title, icon: Icon, children, side = "left" }
 )
 
 const LoginSection = ({ onLogin }) => {
-  const [authMode, setAuthMode] = useState('login') // 'login', 'register', 'forgot'
-  const [authStep, setAuthStep] = useState('input') // 'input', 'verifying', 'reset'
-  const [generatedCode, setGeneratedCode] = useState("")
-  const [verificationInput, setVerificationInput] = useState("")
+  const [authMode, setAuthMode] = useState('login')
   const [username, setUsername] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
   const validatePassword = (pass) => {
     const minLength = pass.length >= 8
@@ -118,108 +116,59 @@ const LoginSection = ({ onLogin }) => {
 
   const { isValid: isPassStrong, checks: passChecks } = validatePassword(password)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const users = JSON.parse(localStorage.getItem('sparkle_v2_users') || '{}')
-    
-    if (authMode === 'register') {
-      if (authStep === 'input') {
-        if (!username || !password || !email) return setError("Please fill all fields")
-        if (!isPassStrong) return setError("Password does not meet safety requirements")
-        if (users[username]) return setError("Username already exists")
-        if (!email.includes('@')) return setError("Invalid email address")
-        const emailExists = Object.values(users).some(u => u.email === email)
-        if (emailExists) return setError("Email already registered. Please login.")
+    setError("")
+    setIsLoading(true)
 
-        const code = Math.floor(100000 + Math.random() * 900000).toString()
-        setGeneratedCode(code)
-        setAuthStep('verifying')
-        setToastMessage(`Verification code sent to ${email}`)
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 5000)
-        console.log(`[SPARKLE OS] VERIFICATION CODE FOR ${email}: ${code}`)
-        emailjs.send("service_sparkle", "template_wnchqd7", {
-          to_email: email,
-          code: code
-        }, "46Fx4YBs1fJoSuazP").catch(err => console.error("EmailJS config error:", err));
-      } else if (authStep === 'verifying') {
-        if (verificationInput !== generatedCode) return setError("Incorrect verification code")
-        
-        users[username] = { 
-          email, 
-          password, 
-          history: [], 
-          streak: 1, 
-          lastLogin: new Date().toDateString() 
-        }
-        localStorage.setItem('sparkle_v2_users', JSON.stringify(users))
-        onLogin(username)
-      }
+    if (authMode === 'register') {
+      if (!username || !password || !email) { setError("Please fill all fields"); setIsLoading(false); return; }
+      if (!isPassStrong) { setError("Password does not meet safety requirements"); setIsLoading(false); return; }
+      
+      const { data, error: signupError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { username } }
+      })
+
+      if (signupError) { setError(signupError.message); setIsLoading(false); return; }
+
+      setToastMessage("Registration successful! You can now log in.")
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 5000)
+      setAuthMode('login')
+      setPassword("")
+
     } else if (authMode === 'forgot') {
-      if (authStep === 'input') {
-        if (!username) return setError("Please enter your username or email")
-        
-        const users = JSON.parse(localStorage.getItem('sparkle_v2_users') || '{}')
-        let targetUsername = null
-        let targetUser = null
-        
-        if (username.includes('@')) {
-          targetUsername = Object.keys(users).find(k => users[k].email === username)
-          if (!targetUsername) return setError("No account found with this email")
-          targetUser = users[targetUsername]
-        } else {
-          if (!users[username]) return setError("Username not found")
-          targetUsername = username
-          targetUser = users[username]
-        }
-        
-        const userEmail = targetUser.email
-        if (!userEmail) return setError("No email linked to this account")
-        
-        const code = Math.floor(100000 + Math.random() * 900000).toString()
-        setGeneratedCode(code)
-        setEmail(userEmail)
-        setUsername(targetUsername)
-        setAuthStep('verifying')
-        setToastMessage(`Code sent to linked email: ${userEmail.replace(/(.{2})(.*)(?=@)/, "$1***")}`)
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 5000)
-        console.log(`[SPARKLE OS] RESET CODE FOR ${userEmail}: ${code}`)
-        emailjs.send("service_sparkle", "template_wnchqd7", {
-          to_email: userEmail,
-          code: code
-        }, "46Fx4YBs1fJoSuazP").catch(err => console.error("EmailJS config error:", err));
-      } else if (authStep === 'verifying') {
-        if (verificationInput !== generatedCode) return setError("Incorrect verification code")
-        setAuthStep('reset')
-        setPassword("")
-      } else if (authStep === 'reset') {
-        if (!password) return setError("Please enter a new password")
-        if (!isPassStrong) return setError("Password does not meet safety requirements")
-        
-        users[username].password = password
-        localStorage.setItem('sparkle_v2_users', JSON.stringify(users))
-        setToastMessage("Password successfully reset")
-        setShowToast(true)
-        setTimeout(() => setShowToast(false), 5000)
-        setAuthMode('login')
-        setAuthStep('input')
-        setPassword("")
-      }
+      if (!email) { setError("Please enter your email"); setIsLoading(false); return; }
+      
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email)
+      if (resetError) { setError(resetError.message); setIsLoading(false); return; }
+
+      setToastMessage("If an account exists, a reset link was sent to your email.")
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 5000)
+      setAuthMode('login')
+
     } else {
-      if (!username || !password) return setError("Please fill all fields")
-      if (!users[username]) return setError("User not found")
-      if (users[username].password !== password) return setError("Incorrect password")
-      onLogin(username)
+      if (!email || !password) { setError("Please fill all fields"); setIsLoading(false); return; }
+
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+
+      if (loginError) { setError(loginError.message); setIsLoading(false); return; }
+      onLogin(data.user)
     }
+
+    setIsLoading(false)
   }
 
   const switchMode = (mode) => {
     setAuthMode(mode)
-    setAuthStep('input')
     setError("")
     setPassword("")
-    setVerificationInput("")
   }
 
   const renderPasswordStrength = () => (
@@ -228,13 +177,13 @@ const LoginSection = ({ onLogin }) => {
         <div className={`w-1 h-1 rounded-full ${passChecks.minLength ? 'bg-green-400' : 'bg-white/20'}`} /> 8+ Characters
       </div>
       <div className={`flex items-center gap-2 ${passChecks.hasUpper ? 'text-green-400' : 'text-white/20'}`}>
-        <div className={`w-1 h-1 rounded-full ${passChecks.hasUpper ? 'bg-green-400' : 'bg-white/20'}`} /> Uppercase Letter
+        <div className={`w-1 h-1 rounded-full ${passChecks.hasUpper ? 'bg-green-400' : 'bg-white/20'}`} /> Uppercase
       </div>
       <div className={`flex items-center gap-2 ${passChecks.hasNumber ? 'text-green-400' : 'text-white/20'}`}>
         <div className={`w-1 h-1 rounded-full ${passChecks.hasNumber ? 'bg-green-400' : 'bg-white/20'}`} /> Number
       </div>
       <div className={`flex items-center gap-2 ${passChecks.hasSpecial ? 'text-green-400' : 'text-white/20'}`}>
-        <div className={`w-1 h-1 rounded-full ${passChecks.hasSpecial ? 'bg-green-400' : 'bg-white/20'}`} /> Special (!@#$)
+        <div className={`w-1 h-1 rounded-full ${passChecks.hasSpecial ? 'bg-green-400' : 'bg-white/20'}`} /> Special
       </div>
     </div>
   )
@@ -244,120 +193,57 @@ const LoginSection = ({ onLogin }) => {
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 1.1 }}
-      className="z-10 max-w-md w-full glass-morphism rounded-[2rem] p-8 text-center max-h-[90vh] overflow-y-auto scrollbar-hide"
+      className="z-10 max-w-md w-full glass-morphism rounded-[2rem] p-8 text-center max-h-[90vh] overflow-y-auto scrollbar-hide flex flex-col justify-center"
     >
       <Brain className="w-12 h-12 mx-auto mb-4 text-purple-400" />
       <h1 className="text-4xl font-light mb-2 tracking-tight">Sparkle</h1>
       <p className="text-white/40 mb-6 font-light text-sm italic">Ignite your inner narrative.</p>
       
       <form onSubmit={handleSubmit} className="space-y-3">
-        {authStep === 'input' && (
-          <>
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder={authMode === 'forgot' ? "Username or Email Address" : "Username"}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
-              />
-            </div>
-            
-            {authMode === 'register' && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="relative">
-                <input 
-                  type="email" 
-                  placeholder="Email Address" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light mb-2 text-center"
-                />
-              </motion.div>
-            )}
+        <div className="relative">
+          <input 
+            type="email" 
+            placeholder="Email Address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+          />
+        </div>
 
-            {authMode !== 'forgot' && (
-              <div className="relative">
-                <input 
-                  type="password" 
-                  placeholder="Password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
-                />
-                {authMode === 'register' && password && renderPasswordStrength()}
-              </div>
-            )}
-          </>
-        )}
-
-        {authStep === 'verifying' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="text-sm text-white/40 font-light">
-              We sent a 6-digit code to <br/>
-              <span className="text-purple-300">
-                {authMode === 'forgot' && email ? email.replace(/(.{2})(.*)(?=@)/, "$1***") : email}
-              </span>
-            </div>
+        {authMode === 'register' && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="relative">
             <input 
               type="text" 
-              placeholder="Enter Code" 
-              value={verificationInput}
-              maxLength={6}
-              onChange={(e) => setVerificationInput(e.target.value.replace(/\D/g, ""))}
-              className="w-full bg-white/10 border border-purple-500/30 rounded-2xl px-4 py-6 text-center text-4xl tracking-widest focus:outline-none focus:border-purple-400 transition-all font-mono"
+              placeholder="Pick a Username" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center mt-3"
             />
-            <button 
-              type="button"
-              onClick={() => setAuthStep('input')}
-              className="text-[10px] text-white/20 hover:text-white/50 uppercase tracking-widest underline underline-offset-4"
-            >
-              Back to details
-            </button>
           </motion.div>
         )}
 
-        {authStep === 'reset' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-            <div className="text-sm text-white/40 font-light mb-4 text-center">
-              Account found: <span className="text-purple-400">{username}</span><br/>
-              Enter your new secure password
-            </div>
-            <div className="relative">
-              <input 
-                type="password" 
-                placeholder="New Password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
-              />
-              {password && renderPasswordStrength()}
-            </div>
-            <button 
-              type="button"
-              onClick={() => {
-                const updatedUsers = JSON.parse(localStorage.getItem('sparkle_v2_users') || '{}')
-                delete updatedUsers[username]
-                localStorage.setItem('sparkle_v2_users', JSON.stringify(updatedUsers))
-                setToastMessage("Account deleted. Email freed for new registration.")
-                setShowToast(true)
-                setTimeout(() => setShowToast(false), 5000)
-                switchMode('register')
-              }}
-              className="text-[10px] text-red-400/50 hover:text-red-400 mt-2 uppercase tracking-widest underline underline-offset-4 w-full text-center transition-colors"
-            >
-              Or Delete Old Account & Free Email
-            </button>
-          </motion.div>
+        {authMode !== 'forgot' && (
+          <div className="relative mt-3">
+            <input 
+              type="password" 
+              placeholder="Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500/50 transition-all font-light text-center"
+            />
+            {authMode === 'register' && password && renderPasswordStrength()}
+          </div>
         )}
 
         {error && <p className="text-red-400/80 text-xs mt-2 font-light">{error}</p>}
         
         <button 
           type="submit"
-          className="w-full py-4 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group mt-6 shadow-xl"
+          disabled={isLoading}
+          className="w-full py-4 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group mt-6 shadow-xl disabled:opacity-50"
         >
-          {authStep === 'verifying' ? 'Verify Code' : authStep === 'reset' ? 'Reset Password' : authMode === 'register' ? 'Send Code' : authMode === 'forgot' ? 'Find Account' : 'Enter the Vortex'}
-          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          {isLoading ? 'Processing...' : (authMode === 'register' ? 'Register' : authMode === 'forgot' ? 'Send Reset Link' : 'Enter the Vortex')}
+          {!isLoading && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
         </button>
       </form>
 
@@ -843,46 +729,65 @@ const JournalSection = ({ topic, onExit, onSave }) => {
 }
 
 function App() {
-  const [currentUser, setCurrentUser] = useLocalStorage('sparkle_v2_current', null)
-  const [users, setUsers] = useLocalStorage('sparkle_v2_users', {})
+  const [session, setSession] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
+  const [userHistory, setUserHistory] = useState([])
   const [page, setPage] = useState('login')
   const [selectedTopic, setSelectedTopic] = useState("")
   const [sidebars, setSidebars] = useState({ history: false, stats: false })
-
-  const user = currentUser ? users[currentUser] : null
+  const [theme, setTheme] = useLocalStorage('sparkle_v2_theme', 'dark')
 
   useEffect(() => {
-    if (currentUser) setPage('selection')
-  }, [currentUser])
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+    
+    return () => subscription.unsubscribe()
+  }, [])
 
-  const handleLogin = (username) => {
-    const updatedUsers = { ...users }
-    const today = new Date().toDateString()
-    
-    // Initialize user if they don't exist (e.g. Guest)
-    if (!updatedUsers[username]) {
-      updatedUsers[username] = { 
-        email: "guest@sparkle.os", 
-        password: "", 
-        history: [], 
-        streak: 1, 
-        lastLogin: today 
-      }
-    } else if (updatedUsers[username].lastLogin !== today) {
-      const last = new Date(updatedUsers[username].lastLogin)
-      const diff = Math.floor((new Date() - last) / (1000 * 60 * 60 * 24))
-      if (diff === 1) updatedUsers[username].streak += 1
-      else if (diff > 1) updatedUsers[username].streak = 1
-      updatedUsers[username].lastLogin = today
+  useEffect(() => {
+    if (session) {
+      loadUserData(session.user.id)
+      setPage('selection')
+    } else {
+      setPage('login')
+      setUserProfile(null)
+      setUserHistory([])
     }
+  }, [session])
+
+  const loadUserData = async (userId) => {
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
+    const today = new Date().toISOString().split('T')[0]
+    let updatedProfile = profile
     
-    setUsers(updatedUsers)
-    setCurrentUser(username)
+    if (!profile) {
+      const username = session?.user?.user_metadata?.username || "NeuralWalker"
+      const { data: newProfile } = await supabase.from('profiles').insert([{ id: userId, username, streak: 1, last_login: today }]).select().single()
+      updatedProfile = newProfile
+    } else {
+      const last = profile.last_login?.split('T')[0] || today
+      if (today !== last) {
+        const diff = Math.floor((new Date(today) - new Date(last)) / (1000 * 60 * 60 * 24))
+        let newStreak = profile.streak
+        if (diff === 1) newStreak += 1
+        else if (diff > 1) newStreak = 1
+        const { data: newProfile } = await supabase.from('profiles').update({ streak: newStreak, last_login: today }).eq('id', userId).select().single()
+        updatedProfile = newProfile
+      }
+    }
+    setUserProfile(updatedProfile)
+    
+    const { data: historyData } = await supabase.from('journal_entries').select('*').eq('user_id', userId).order('created_at', { ascending: false })
+    if (historyData) setUserHistory(historyData)
   }
 
-  const handleLogout = () => {
-    setCurrentUser(null)
-    setPage('login')
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     setSidebars({ history: false, stats: false })
   }
 
@@ -891,19 +796,14 @@ function App() {
     setPage('journaling')
   }
 
-  const handleSaveJournal = (topic, content) => {
-    if (!currentUser) return
-    const updatedUsers = { ...users }
-    updatedUsers[currentUser].history = [
-      { id: Date.now(), topic, content, date: new Date().toLocaleString() },
-      ...updatedUsers[currentUser].history
-    ]
-    setUsers(updatedUsers)
-  }
-
-  const handleExit = () => {
-    if (document.fullscreenElement) document.exitFullscreen()
-    setPage('selection')
+  const handleSaveJournal = async (topic, content) => {
+    if (!session) return
+    const newEntry = { user_id: session.user.id, topic, content }
+    
+    const { data, error } = await supabase.from('journal_entries').insert([newEntry]).select().single()
+    if (!error && data) {
+      setUserHistory(prev => [data, ...prev])
+    }
   }
 
   const toggleSidebar = (name) => {
@@ -915,23 +815,25 @@ function App() {
       <InteractiveNeuralVortex />
       
       <AnimatePresence mode="wait">
-        {!currentUser && <LoginSection key="login" onLogin={handleLogin} />}
-        {currentUser && page === 'selection' && (
+        {!session && <LoginSection key="login" onLogin={() => {}} />}
+        {session && page === 'selection' && (
           <SelectionSection 
             key="selection" 
-            user={user}
-            username={currentUser}
+            user={userProfile}
+            username={userProfile?.username || session.user.email}
             onSelectTopic={handleSelectTopic} 
             onLogout={handleLogout}
             openHistory={() => toggleSidebar('history')}
             openStats={() => toggleSidebar('stats')}
+            theme={theme}
+            toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
           />
         )}
-        {currentUser && page === 'journaling' && (
+        {session && page === 'journaling' && (
           <JournalSection 
             key="journal" 
             topic={selectedTopic} 
-            onExit={handleExit} 
+            onExit={() => setPage('selection')} 
             onSave={handleSaveJournal}
           />
         )}
@@ -945,14 +847,14 @@ function App() {
         side="left"
       >
         <div className="space-y-4">
-          {user?.history.map((entry) => (
+          {userHistory.map((entry) => (
             <div key={entry.id} className="p-5 glass-morphism rounded-3xl border-white/5 hover:border-purple-500/20 transition-all group">
-              <div className="text-[10px] text-white/20 mb-2 uppercase tracking-widest">{entry.date}</div>
+              <div className="text-[10px] text-white/20 mb-2 uppercase tracking-widest">{new Date(entry.created_at).toLocaleString()}</div>
               <div className="text-sm font-medium text-purple-300 mb-3 italic">"{entry.topic}"</div>
               <div className="text-xs text-white/40 group-hover:text-white/60 line-clamp-3 leading-relaxed transition-colors font-light">{entry.content}</div>
             </div>
           ))}
-          {user?.history.length === 0 && (
+          {userHistory.length === 0 && (
             <div className="text-center mt-32 text-white/20 italic font-light">No neural echoes found.</div>
           )}
         </div>
@@ -969,10 +871,10 @@ function App() {
           <div className="text-center p-10 glass-morphism rounded-[2.5rem] relative overflow-hidden group border border-white/5">
             <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
             <Flame className="w-16 h-16 text-orange-400 mx-auto mb-6 group-hover:scale-110 transition-transform" />
-            <div className="text-6xl font-light mb-2">{user?.streak}</div>
+            <div className="text-6xl font-light mb-2">{userProfile?.streak || 0}</div>
             <div className="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8">Day Streak</div>
-            {user?.streak > 0 && (
-              <div className="text-xs text-orange-300/80 italic font-light animate-pulse">You're on a {user?.streak}-day streak — keep going!</div>
+            {userProfile?.streak > 0 && (
+              <div className="text-xs text-orange-300/80 italic font-light animate-pulse">You're on a {userProfile?.streak}-day streak — keep going!</div>
             )}
           </div>
           
@@ -985,8 +887,8 @@ function App() {
 
           <div className="p-8 glass-morphism rounded-[2rem] border border-white/5">
             <div className="text-[10px] uppercase tracking-[0.3em] text-white/20 mb-6">Linked Account</div>
-            <div className="text-sm font-light text-white/60 mb-1">{currentUser}</div>
-            <div className="text-xs font-light text-purple-400/50 italic">{user?.email}</div>
+            <div className="text-sm font-light text-white/60 mb-1">{userProfile?.username || "NeuralWalker"}</div>
+            <div className="text-xs font-light text-purple-400/50 italic">{session?.user?.email}</div>
           </div>
         </div>
       </Sidebar>
