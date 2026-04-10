@@ -672,6 +672,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
             </div>
           </div>
 
+          <div className="space-y-4">
             <button 
               onClick={startSession}
               className="w-full py-4 rounded-xl font-medium outline-btn text-white flex items-center justify-center gap-3 group text-md"
