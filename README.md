@@ -1,12 +1,10 @@
-# Sparkle | Immersive Deep-Focus Journaling 🌌
-
-**Live Demo:** [sparkle-vortex.vercel.app](https://sparkle-vortex.vercel.app)
+# Sparkle | Immersive Deep-Focus Journaling
 
 Sparkle is a premium, full-stack journaling application engineered to provide a distraction-free environment for reflection and deep work. Designed with a "vortex" aesthetic, it combines immersive WebGL visuals with a robust cloud backend to create a seamless, professional-grade user experience.
 
----
+**Live Demo:** [sparkle-vortex.vercel.app](https://sparkle-vortex.vercel.app)
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend Architecture
 - **React 19 & Vite**: High-performance rendering and lightning-fast development cycle.
@@ -19,9 +17,7 @@ Sparkle is a premium, full-stack journaling application engineered to provide a 
 - **Supabase Auth**: Secure JWT-based authentication with protected route management.
 - **Row-Level Security (RLS)**: Fine-grained database policies ensuring absolute user data privacy.
 
----
-
-## 🔥 Key Technical Features
+## Key Technical Features
 
 ### 1. Vortex Soundscape Engine
 A custom-engineered audio solution designed to facilitate alpha-wave focus through immersive ambient layers.
@@ -39,15 +35,13 @@ Full CRUD integration with PostgreSQL. Every entry is securely saved to the clou
 ### 4. Behavioral Gamification
 Implemented a dynamic streak-tracking algorithm that calculates consecutive days of activity, encouraging a consistent writing habit.
 
----
-
 ## Engineering Highlights 
 - **Asynchronous Data Handling**: Orchestrated complex loading states and error boundaries for real-time cloud data fetching.
 - **UX-First Security**: Implemented a "Preview as Guest" feature that isolates local state from cloud state, allowing instant user onboarding without friction.
 - **Performance Optimization**: Optimized WebGL rendering and Framer Motion orchestrations to maintain a smooth 60fps experience even on mobile devices.
 - **Responsive Architecture**: Fully responsive glass-morphism UI that adapts seamlessly to desktop, tablet, and mobile orientations.
 
-## 🛠️ Local Development
+## Local Development
 
 ```bash
 # Clone the repository
@@ -60,5 +54,5 @@ npm install
 npm run dev
 ```
 
----
-*Developed as a showcase of Full-Stack React Engineering and High-Performance UI Design.*
+
+**Ignite your inner narrative.**
