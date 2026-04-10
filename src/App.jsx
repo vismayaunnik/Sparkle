@@ -888,7 +888,7 @@ function App() {
             <div className="text-6xl font-light mb-2">{userProfile?.streak || 0}</div>
             <div className="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8">Day Streak</div>
             {userProfile?.streak > 0 && (
-              <div className="text-xs text-orange-300/80 italic font-light animate-pulse">You're on a {userProfile?.streak}-day streak — keep going!</div>
+              <div className="text-xs text-orange-300/80 italic font-light animate-pulse">You're on a {userProfile?.streak}-day streak - keep going!</div>
             )}
           </div>
           
