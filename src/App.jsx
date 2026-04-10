@@ -730,6 +730,7 @@ const JournalSection = ({ topic, onExit, onSave }) => {
 
 function App() {
   const [session, setSession] = useState(null)
+  const [isGuest, setIsGuest] = useState(false)
   const [userProfile, setUserProfile] = useState(null)
   const [userHistory, setUserHistory] = useState([])
   const [page, setPage] = useState('login')
@@ -751,14 +752,19 @@ function App() {
 
   useEffect(() => {
     if (session) {
+      setIsGuest(false)
       loadUserData(session.user.id)
+      setPage('selection')
+    } else if (isGuest) {
+      setUserProfile({ username: 'NeuralGuest', streak: 0, last_login: new Date().toISOString() })
+      setUserHistory([])
       setPage('selection')
     } else {
       setPage('login')
       setUserProfile(null)
       setUserHistory([])
     }
-  }, [session])
+  }, [session, isGuest])
 
   const loadUserData = async (userId) => {
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single()
@@ -787,7 +793,11 @@ function App() {
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    if (isGuest) {
+      setIsGuest(false)
+    } else {
+      await supabase.auth.signOut()
+    }
     setSidebars({ history: false, stats: false })
   }
 
@@ -797,6 +807,10 @@ function App() {
   }
 
   const handleSaveJournal = async (topic, content) => {
+    if (isGuest) {
+      setUserHistory(prev => [{ id: Date.now(), topic, content, created_at: new Date().toISOString() }, ...prev])
+      return
+    }
     if (!session) return
     const newEntry = { user_id: session.user.id, topic, content }
     
@@ -815,12 +829,12 @@ function App() {
       <InteractiveNeuralVortex />
       
       <AnimatePresence mode="wait">
-        {!session && <LoginSection key="login" onLogin={() => {}} />}
-        {session && page === 'selection' && (
+        {!session && !isGuest && <LoginSection key="login" onLogin={(v) => { if(v === 'Guest') setIsGuest(true) }} />}
+        {(session || isGuest) && page === 'selection' && (
           <SelectionSection 
             key="selection" 
             user={userProfile}
-            username={userProfile?.username || session.user.email}
+            username={userProfile?.username || session?.user?.email || "Guest"}
             onSelectTopic={handleSelectTopic} 
             onLogout={handleLogout}
             openHistory={() => toggleSidebar('history')}
@@ -829,7 +843,7 @@ function App() {
             toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
           />
         )}
-        {session && page === 'journaling' && (
+        {(session || isGuest) && page === 'journaling' && (
           <JournalSection 
             key="journal" 
             topic={selectedTopic} 
