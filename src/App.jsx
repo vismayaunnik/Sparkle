@@ -70,11 +70,11 @@ const STORY_LINES = [
 ]
 
 const PEACEFUL_TRACKS = [
-  { title: "Midnight Rain", url: "https://raw.githubusercontent.com/Anant-mishra17/Relaxing-Music-Player/master/assets/audio/rain.mp3" },
-  { title: "Neural Drift", url: "https://raw.githubusercontent.com/Anant-mishra17/Relaxing-Music-Player/master/assets/audio/ocean.mp3" },
-  { title: "Zen Garden", url: "https://www.learningcontainer.com/wp-content/uploads/2020/02/Kalimba.mp3" },
-  { title: "Slow Focus", url: "https://raw.githubusercontent.com/Anant-mishra17/Relaxing-Music-Player/master/assets/audio/forest.mp3" },
-  { title: "Lunar Echo", url: "https://raw.githubusercontent.com/rafaelreis-hotmart/Audio-Sample-files/master/sample.mp3" }
+  { title: "Quantum Pulse", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_3.mp3" },
+  { title: "Neural Drift", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_1.mp3" },
+  { title: "Static Calm", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_2.mp3" },
+  { title: "Lunar Echo", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_4.mp3" },
+  { title: "Vortex Stream", url: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/355309/Gyb_5.mp3" }
 ]
 
 // --- UI Components ---
