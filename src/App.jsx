@@ -333,7 +333,7 @@ const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory
         </button>
         <button onClick={openStats} className="p-4 glass-morphism rounded-full hover:bg-white/10 transition-all group relative" title="Stats">
           <Flame className="w-5 h-5 text-orange-400 group-hover:text-orange-300" />
-          <span className="absolute -top-1 -right-1 bg-purple-600 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#020202]">{user.streak}</span>
+          <span className="absolute -top-1 -right-1 bg-purple-600 text-[10px] w-5 h-5 rounded-full flex items-center justify-center border-2 border-[#020202]">{user?.streak || 0}</span>
         </button>
         <button onClick={onLogout} className="p-4 glass-morphism rounded-full hover:bg-white/10 transition-all group" title="Logout">
           <LogOut className="w-5 h-5 text-red-400/50 group-hover:text-red-400" />
