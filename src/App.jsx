@@ -840,30 +840,15 @@ function App() {
       audioRef.current = new Audio(PEACEFUL_TRACKS[0].url)
       audioRef.current.loop = true
     }
-
-    const audio = audioRef.current
-    audio.volume = audioState.isMuted ? 0 : audioState.volume
-    
-    if (audioState.isPlaying) {
-      audio.play().catch(e => console.log("Audio play blocked by browser policy"))
-    } else {
-      audio.pause()
-    }
-
-    return () => {}
-  }, [audioState.isPlaying, audioState.volume, audioState.isMuted])
+  }, [])
 
   useEffect(() => {
     if (audioRef.current) {
-      const wasPlaying = audioState.isPlaying
-      audioRef.current.pause()
-      audioRef.current.src = PEACEFUL_TRACKS[audioState.currentTrack].url
-      audioRef.current.load()
-      if (wasPlaying) {
-        audioRef.current.play().catch(() => {})
-      }
+      audioRef.current.volume = audioState.isMuted ? 0 : audioState.volume
     }
-  }, [audioState.currentTrack])
+  }, [audioState.volume, audioState.isMuted])
+
+  // Track change is now handled directly in the handler for better gesture persistence
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -957,8 +942,19 @@ function App() {
       
       <MusicController 
         {...audioState}
-        onToggle={() => setAudioState(p => ({ ...p, isPlaying: !p.isPlaying }))}
-        onTrackChange={(idx) => setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))}
+        onToggle={() => {
+          const nextPlaying = !audioState.isPlaying
+          if (nextPlaying) audioRef.current.play().catch(() => {})
+          else audioRef.current.pause()
+          setAudioState(p => ({ ...p, isPlaying: nextPlaying }))
+        }}
+        onTrackChange={(idx) => {
+          audioRef.current.pause()
+          audioRef.current.src = PEACEFUL_TRACKS[idx].url
+          audioRef.current.load()
+          audioRef.current.play().catch(() => {})
+          setAudioState(p => ({ ...p, currentTrack: idx, isPlaying: true }))
+        }}
         onVolumeChange={(v) => setAudioState(p => ({ ...p, volume: v, isMuted: v === 0 }))}
         onToggleMute={() => setAudioState(p => ({ ...p, isMuted: !p.isMuted }))}
       />
