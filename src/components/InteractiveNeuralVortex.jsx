@@ -86,10 +86,21 @@ const InteractiveNeuralVortex = ({ theme = 'dark' }) => {
     const vertexShader = compileShader(gl, vsSource, gl.VERTEX_SHADER);
     const fragmentShader = compileShader(gl, fsSource, gl.FRAGMENT_SHADER);
 
+    if (!vertexShader || !fragmentShader) {
+      console.error('Shader compilation failed');
+      return;
+    }
+
     const program = gl.createProgram();
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error('Program linking failed');
+      return;
+    }
+
     gl.useProgram(program);
 
     const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);

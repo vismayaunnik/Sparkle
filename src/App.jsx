@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from 'react'
+import React, { useState, useEffect, createContext, useContext, useRef } from 'react'
 import InteractiveNeuralVortex from './components/InteractiveNeuralVortex'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, Brain, Clock, X, Terminal, ChevronRight, Shuffle, User, History, Flame, LogOut, Save, Mail, Lock, Sun, Moon, Play, Pause, Music, Volume2, VolumeX } from 'lucide-react'
@@ -383,7 +383,7 @@ const LoginSection = ({ onLogin }) => {
   )
 }
 
-const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory, openStats }) => {
+const SelectionSection = ({ user, username, onSelectTopic, onLogout, openHistory, openStats, theme, toggleTheme }) => {
   const [mindInput, setMindInput] = useState("")
   const [isRandomizing, setIsRandomizing] = useState(false)
   const [randomTopic, setRandomTopic] = useState("")
@@ -847,14 +847,25 @@ function App() {
   const currentNodes = useRef([])
 
   const initAudio = () => {
-    if (!audioCtx.current) {
-      audioCtx.current = new (window.AudioContext || window.webkitAudioContext)()
-      masterGain.current = audioCtx.current.createGain()
-      masterGain.current.connect(audioCtx.current.destination)
-      masterGain.current.gain.value = audioState.isMuted ? 0 : audioState.volume
-    }
-    if (audioCtx.current.state === 'suspended') {
-      audioCtx.current.resume()
+    try {
+      if (!audioCtx.current) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext
+        if (!AudioContextClass) {
+          console.warn("AudioContext not supported in this browser.")
+          return false
+        }
+        audioCtx.current = new AudioContextClass()
+        masterGain.current = audioCtx.current.createGain()
+        masterGain.current.connect(audioCtx.current.destination)
+        masterGain.current.gain.value = audioState.isMuted ? 0 : audioState.volume
+      }
+      if (audioCtx.current.state === 'suspended') {
+        audioCtx.current.resume()
+      }
+      return true
+    } catch (e) {
+      console.error("Failed to initialize audio engine", e)
+      return false
     }
   }
 
@@ -867,7 +878,7 @@ function App() {
   }
 
   const playPatch = (idx) => {
-    initAudio()
+    if (!initAudio()) return
     stopCurrentPatch()
     
     const patch = NEURAL_PATCHES[idx]
@@ -940,8 +951,11 @@ function App() {
   }, [audioState.isPlaying, audioState.currentTrack])
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data?.session || null)
+    }).catch(err => {
+      console.error("Supabase connection failed:", err)
+      setSession(null)
     })
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -1027,7 +1041,7 @@ function App() {
 
   return (
     <div className="relative h-screen overflow-hidden w-full flex flex-col items-center justify-center bg-[#020202] text-white selection:bg-purple-500/40 font-sans tracking-wide">
-      <InteractiveNeuralVortex />
+      <InteractiveNeuralVortex theme={theme} />
       
       <MusicController 
         {...audioState}
