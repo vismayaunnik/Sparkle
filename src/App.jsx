@@ -919,12 +919,25 @@ function App() {
       const lfo = ctx.createOscillator()
       const lfoGain = ctx.createGain()
       
-      osc.type = patch.type === 'sine' ? 'sine' : patch.type === 'triangle' ? 'triangle' : 'sine'
-      osc.frequency.setValueAtTime(patch.type === 'triangle' ? 110 : 220, ctx.currentTime)
+      osc.type = patch.type === 'triangle' ? 'triangle' : 'sine'
       
-      lfo.type = 'sine'
-      lfo.frequency.setValueAtTime(0.5, ctx.currentTime)
-      lfoGain.gain.setValueAtTime(10, ctx.currentTime)
+      if (patch.type === 'sine') {
+        // Aether Drift: Very slow pitch drift, ethereal
+        osc.frequency.setValueAtTime(220, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(5, ctx.currentTime)
+      } else if (patch.type === 'fm') {
+        // Lunar Echo: Fast modulation for a "shimmering" or metallic sound
+        osc.frequency.setValueAtTime(110, ctx.currentTime)
+        lfo.type = 'square' 
+        lfo.frequency.setValueAtTime(8, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(100, ctx.currentTime)
+      } else if (patch.type === 'triangle') {
+        // Stellar Pulse: Warm triangle with mid-speed pulse
+        osc.frequency.setValueAtTime(82, ctx.currentTime)
+        lfo.frequency.setValueAtTime(1.5, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(15, ctx.currentTime)
+      }
       
       lfo.connect(lfoGain)
       lfoGain.connect(osc.frequency)
